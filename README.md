@@ -17,6 +17,7 @@ install, no network access, no build step, no subscription.
 | `test-core.js` | Test suite for the scoring core embedded in the HTML. |
 | `scoring.txt` | Original rules and scoring notes. Authoritative source for the spec. |
 | `hand-foot-toe.xlsm` | Original Excel spreadsheet. Retained for reference; history was not imported. |
+| `LICENSE` | MIT license. |
 
 ## Using it
 
@@ -86,7 +87,7 @@ data. A page refuses to import a file written by a newer schema.
 
 ## Credits
 
-- **Rick** (rick@n...w.com): the game as played, the original
+- **Rick** (rick@neverslow.com): the game as played, the original
   `hand-foot-toe.xlsm` spreadsheet and its scoring logic, `scoring.txt`,
   requirements, design decisions and review.
 - **Claude** (Anthropic), working with Rick in Claude Cowork, October 2026:
@@ -97,3 +98,8 @@ data. A page refuses to import a file written by a newer schema.
   - Composed `rules.md`, the written rules, from Rick's `scoring.txt`, the
     spreadsheet and his clarifications.
   - Wrote `scoring-spec.md` and this README.
+
+## License
+
+MIT. See `LICENSE`. Covers the application, tests, rules and documentation.
+Derivatives must retain the copyright notice and license text.
