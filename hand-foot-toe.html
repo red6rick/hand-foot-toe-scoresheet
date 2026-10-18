@@ -1,0 +1,1091 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hand-Foot-Toe Scorekeeper</title>
+<style>
+:root {
+  --bg: #f6f5f1; --panel: #ffffff; --ink: #1d1d1f; --muted: #6b6b70; --line: #deddd6;
+  --accent: #2f5d8a; --accent-ink: #ffffff; --hl: #edf2f7; --warn: #b3261e; --ok: #2d7a46;
+  --t0: #9a3b5c; --t1: #2f6a8a;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #17181a; --panel: #212225; --ink: #e8e6e1; --muted: #9b9ba1; --line: #3a3b40;
+    --accent: #7aa7d6; --accent-ink: #111111; --hl: #26303b; --warn: #ff8a80; --ok: #6cc58a;
+    --t0: #e392ae; --t1: #86b9d8;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink);
+  font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+header { display: flex; align-items: center; gap: 28px; padding: 10px 24px; background: var(--panel);
+  border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 5; }
+h1 { font-size: 17px; margin: 0; font-weight: 650; letter-spacing: .2px; }
+h2 { font-size: 16px; margin: 28px 0 8px; }
+nav { display: flex; gap: 4px; }
+nav button { background: none; border: 0; padding: 6px 12px; border-radius: 6px; color: var(--muted);
+  font: inherit; cursor: pointer; }
+nav button:hover { color: var(--ink); }
+nav button.active { background: var(--hl); color: var(--ink); font-weight: 600; }
+main { max-width: 1120px; margin: 0 auto; padding: 20px 24px 64px; }
+footer { max-width: 1120px; margin: 0 auto; padding: 0 24px 24px; color: var(--muted); font-size: 12px; }
+.muted { color: var(--muted); }
+.small { font-size: 13px; }
+.num { font-variant-numeric: tabular-nums; text-align: right; }
+.t0 { color: var(--t0); } .t1 { color: var(--t1); }
+#banner { background: var(--warn); color: #fff; padding: 8px 24px; font-size: 14px; }
+
+.btn { font: inherit; padding: 7px 14px; border-radius: 7px; border: 1px solid var(--line);
+  background: var(--panel); color: var(--ink); cursor: pointer; }
+.btn:hover:not(:disabled) { border-color: var(--muted); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+.btn.danger { color: var(--warn); }
+.btn:disabled { opacity: .45; cursor: default; }
+
+.board { display: grid; grid-template-columns: 1fr auto 1fr; gap: 16px; align-items: stretch; margin-bottom: 18px; }
+.teamcard { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; }
+.teamcard .tname { font-weight: 650; font-size: 15px; }
+.teamcard .ttotal { font-size: 34px; font-weight: 650; text-align: left; line-height: 1.15; }
+.teamcard .tmeta { color: var(--muted); font-size: 13px; }
+.board .mid { align-self: center; text-align: center; min-width: 180px; }
+.board .mid .lead { font-weight: 600; font-size: 15px; }
+
+.tablewrap { overflow-x: auto; }
+table.sheet { border-collapse: separate; border-spacing: 0; background: var(--panel); border: 1px solid var(--line);
+  border-radius: 10px; overflow: hidden; }
+.sheet th, .sheet td { padding: 3px 7px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.sheet tbody tr:last-child th, .sheet tbody tr:last-child td { border-bottom: 0; }
+.sheet thead th { font-weight: 600; font-size: 13px; }
+.sheet th.round { text-align: center; border-left: 1px solid var(--line); padding-top: 7px; }
+.sheet th.round .done { color: var(--ok); font-weight: 500; font-size: 12px; margin-left: 4px; }
+.sheet th.team { text-align: right; font-size: 12px; }
+.sheet tbody th { text-align: left; font-weight: 500; }
+.sheet .hint { color: var(--muted); font-size: 12px; font-weight: 400; margin-left: 6px; }
+.sheet .ta { border-left: 1px solid var(--line); }
+.sheet .cur { background: var(--hl); }
+.sheet input[type=text] { width: 5.2em; text-align: right; font: inherit; font-variant-numeric: tabular-nums;
+  padding: 2px 5px; border: 1px solid var(--line); border-radius: 4px; background: var(--panel); color: var(--ink); }
+.sheet input[type=text]:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: var(--accent); }
+.sheet input[type=checkbox] { width: 16px; height: 16px; margin: 3px 0; accent-color: var(--accent); }
+.sheet input:disabled { opacity: .3; }
+.sheet input.bad { border-color: var(--warn); outline: 1px solid var(--warn); }
+.sheet tr.computed td, .sheet tr.computed th { font-weight: 650; }
+.sheet tr.meld td { font-size: 13px; }
+.sheet tr.sep td, .sheet tr.sep th { border-top: 2px solid var(--line); }
+.sheet .changed { color: var(--warn); }
+
+.actions { display: flex; gap: 10px; align-items: center; margin-top: 14px; flex-wrap: wrap; }
+.actions .spacer { flex: 1; }
+ul.errors { color: var(--warn); margin: 10px 0 0; padding-left: 20px; font-size: 14px; }
+ul.errors:empty { display: none; }
+
+.empty { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 20px 24px; max-width: 560px; }
+.lastgame .score { font-size: 22px; font-weight: 650; }
+
+.stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; margin: 12px 0 20px; }
+.stat { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; }
+.stat .k { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .4px; }
+.stat .v { font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.stat .v .sep { color: var(--muted); font-weight: 400; margin: 0 6px; }
+
+table.list { border-collapse: collapse; background: var(--panel); border: 1px solid var(--line); width: 100%; }
+.list th, .list td { padding: 5px 10px; border-bottom: 1px solid var(--line); text-align: left; white-space: nowrap; }
+.list th { font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .4px; }
+.list td.num, .list th.num { text-align: right; }
+.list tr.win0 td.s0, .list tr.win1 td.s1 { font-weight: 700; }
+
+form.settings { display: grid; gap: 6px; max-width: 520px; }
+.field { display: grid; grid-template-columns: 180px 1fr; align-items: center; gap: 10px; }
+.field input { font: inherit; padding: 5px 8px; border: 1px solid var(--line); border-radius: 6px;
+  background: var(--panel); color: var(--ink); }
+.field input.n { width: 8em; text-align: right; font-variant-numeric: tabular-nums; }
+.meldrow { display: flex; gap: 8px; align-items: center; margin: 4px 0; }
+.meldrow input { font: inherit; width: 8em; padding: 5px 8px; text-align: right; border: 1px solid var(--line);
+  border-radius: 6px; background: var(--panel); color: var(--ink); font-variant-numeric: tabular-nums; }
+.note { background: var(--hl); border-radius: 8px; padding: 8px 12px; font-size: 14px; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 18px; margin-top: 10px; max-width: 680px; }
+.panel select { font: inherit; padding: 3px 6px; }
+.flash { color: var(--ok); margin-left: 10px; }
+
+.rules { max-width: 800px; }
+.rules h2 { scroll-margin-top: 64px; font-size: 17px; margin: 30px 0 8px; padding-top: 6px; border-top: 1px solid var(--line); }
+.rules h2:first-of-type { border-top: 0; }
+.rules h3 { font-size: 15px; margin: 16px 0 4px; }
+.rules p, .rules li { margin: 4px 0; }
+.rules ol, .rules ul { padding-left: 22px; margin: 4px 0 8px; }
+.rules .toc { columns: 2; font-size: 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+  padding: 10px 14px 10px 34px; margin: 10px 0 0; }
+.rules .toc a { color: var(--accent); text-decoration: none; }
+.rules table.qr { border-collapse: collapse; background: var(--panel); border: 1px solid var(--line); margin: 6px 0 10px; font-size: 14px; }
+.rules .qr th, .rules .qr td { padding: 4px 12px; border-bottom: 1px solid var(--line); text-align: left; }
+.rules .qr td.num, .rules .qr th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.rules .qr th { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; }
+.rules .key { background: var(--hl); border-radius: 8px; padding: 8px 12px; margin: 8px 0; }
+.rules .chaos { font-size: 22px; font-weight: 700; letter-spacing: 1px; }
+@media print {
+  header, footer, #banner { display: none; }
+  main { padding: 0; max-width: none; }
+  .rules h2 { break-after: avoid; }
+}
+</style>
+</head>
+<body>
+<div id="banner" hidden>Browser storage is unavailable: nothing will be saved. Use Export before closing this page.</div>
+<header>
+  <h1>Hand-Foot-Toe</h1>
+  <nav>
+    <button data-tab="game" class="active">Game</button>
+    <button data-tab="history">History</button>
+    <button data-tab="settings">Settings</button>
+    <button data-tab="data">Import / Export</button>
+    <button data-tab="rules">Rules</button>
+  </nav>
+</header>
+<main>
+  <section id="tab-game"></section>
+  <section id="tab-history" hidden></section>
+  <section id="tab-settings" hidden></section>
+  <section id="tab-data" hidden></section>
+  <section id="tab-rules" hidden></section>
+</main>
+<footer>Data is stored in this browser on this computer only. Export to a file now and then as a backup.</footer>
+
+<!-- ===================================================================
+     Scoring core: pure functions, no DOM, no storage.
+     Tested by test-core.js (node test-core.js hand-foot-toe.html).
+     =================================================================== -->
+<script id="core">
+const HFT = (() => {
+  'use strict';
+  const SCHEMA = 1;
+  const APP = 'hand-foot-toe';
+
+  // Per-team, per-round inputs. kind: bool | int (>=0) | pts (any int) | neg (counted as -abs)
+  const FIELDS = [
+    { key: 'deal',    label: 'Deal bonus',      kind: 'bool' },
+    { key: 'clean',   label: 'Clean canastas',  kind: 'int'  },
+    { key: 'dirty',   label: 'Dirty canastas',  kind: 'int'  },
+    { key: 'sevens',  label: 'Sevens canastas', kind: 'int'  },
+    { key: 'fives',   label: 'Fives canastas',  kind: 'int'  },
+    { key: 'wilds',   label: 'Wild canastas',   kind: 'int'  },
+    { key: 'red3',    label: 'Red threes',      kind: 'int'  },
+    { key: 'out',     label: 'Went out',        kind: 'bool' },
+    { key: 'count',   label: 'Count on table',  kind: 'pts'  },
+    { key: 'penalty', label: 'Unplayed cards',  kind: 'neg'  },
+  ];
+  const PT_KEYS = ['deal', 'clean', 'dirty', 'sevens', 'fives', 'wilds', 'red3', 'out'];
+
+  function defaultSettings() {
+    return {
+      teams: ['girls', 'guys'],
+      site: '',
+      pts: { deal: 200, clean: 500, dirty: 300, sevens: 2000, fives: 1500, wilds: 1000, red3: 100, out: 500 },
+      meldTable: [[0, 50], [7500, 90], [15000, 120], [22500, 150], [30000, 180], [37500, 220]],
+    };
+  }
+
+  function blankEntry() {
+    return { deal: false, clean: null, dirty: null, sevens: null, fives: null, wilds: null,
+             red3: null, out: false, count: null, penalty: null };
+  }
+
+  // Cell text -> null (blank) | integer | original string (invalid, flagged by cellError)
+  function parseCell(v) {
+    const s = String(v == null ? '' : v).trim();
+    if (s === '') return null;
+    if (/^[-+]?\d+$/.test(s)) return parseInt(s, 10);
+    return s;
+  }
+
+  function cellError(v, kind) {
+    if (v === null || v === undefined || typeof v === 'boolean') return null;
+    if (typeof v !== 'number' || !Number.isInteger(v)) return 'not a whole number';
+    if (kind === 'int' && v < 0) return 'cannot be negative';
+    return null;
+  }
+
+  const num = v => (typeof v === 'number' && Number.isFinite(v)) ? v : 0;
+
+  function roundScore(e, pts) {
+    let s = 0;
+    for (const k of PT_KEYS) s += (typeof e[k] === 'boolean' ? (e[k] ? 1 : 0) : num(e[k])) * num(pts[k]);
+    return s + num(e.count) - Math.abs(num(e.penalty));
+  }
+
+  function meldFor(total, table) {
+    const t = table.slice().sort((a, b) => a[0] - b[0]);
+    let m = t[0][1];
+    for (const [threshold, value] of t) if (total >= threshold) m = value;
+    return m;
+  }
+
+  function newId() {
+    const b = new Uint8Array(16);
+    globalThis.crypto.getRandomValues(b);
+    b[6] = (b[6] & 0x0f) | 0x40; b[8] = (b[8] & 0x3f) | 0x80;
+    const h = Array.from(b, x => x.toString(16).padStart(2, '0')).join('');
+    return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
+  }
+
+  // ---- game ----------------------------------------------------------
+  // game.finished = number of completed rounds (0..4); the round being played is index `finished`.
+  // game.meldOrig[r] = [team0, team1] meld frozen when round r-1 was completed.
+  function newGame(settings, now, id) {
+    const g = {
+      id: id || newId(),
+      started: now || new Date().toISOString(),
+      teams: settings.teams.slice(),
+      site: settings.site || '',
+      pts: Object.assign({}, settings.pts),
+      meldTable: settings.meldTable.map(r => r.slice()),
+      rounds: [0, 1, 2, 3].map(() => [blankEntry(), blankEntry()]),
+      finished: 0,
+      meldOrig: [[null, null], [null, null], [null, null], [null, null]],
+    };
+    const m = meldFor(0, g.meldTable);
+    g.meldOrig[0] = [m, m];
+    return g;
+  }
+
+  function roundScores(g) { return g.rounds.map(r => r.map(e => roundScore(e, g.pts))); }
+
+  function totalsThrough(g, k) {           // sum of rounds 0..k-1
+    const rs = roundScores(g), t = [0, 0];
+    for (let i = 0; i < k; i++) { t[0] += rs[i][0]; t[1] += rs[i][1]; }
+    return t;
+  }
+
+  function lastReachable(g) { return Math.min(g.finished, 3); }
+
+  function meldInfo(g, r, t) {
+    if (r > lastReachable(g)) return null;
+    const orig = g.meldOrig[r][t];
+    const cur = meldFor(totalsThrough(g, r)[t], g.meldTable);
+    return { orig, cur, changed: orig !== cur };
+  }
+
+  function outCount(g, r) { return g.rounds[r].filter(e => e.out).length; }
+
+  function validate(g) {
+    const errs = [];
+    for (let r = 0; r <= lastReachable(g); r++) {
+      for (let t = 0; t < 2; t++) {
+        for (const f of FIELDS) {
+          const e = cellError(g.rounds[r][t][f.key], f.kind);
+          if (e) errs.push(`Round ${r + 1}, ${g.teams[t]}: ${f.label.toLowerCase()} ${e}`);
+        }
+      }
+      const c = outCount(g, r);
+      if (r < g.finished && c !== 1) errs.push(`Round ${r + 1}: exactly one team must have gone out`);
+      if (r >= g.finished && c > 1) errs.push(`Round ${r + 1}: only one team can go out`);
+    }
+    return errs;
+  }
+
+  function canFinishRound(g) { return g.finished < 4 && outCount(g, g.finished) === 1 && validate(g).length === 0; }
+
+  function finishRound(g) {
+    if (!canFinishRound(g)) throw new Error('round cannot be finished');
+    g.finished += 1;
+    if (g.finished < 4) {
+      const t = totalsThrough(g, g.finished);
+      g.meldOrig[g.finished] = [meldFor(t[0], g.meldTable), meldFor(t[1], g.meldTable)];
+    }
+    return g;
+  }
+
+  function canRecord(g) { return g.finished === 4 && validate(g).length === 0; }
+  function canForfeit(g) { return g.finished < 4 && validate(g).length === 0; }
+
+  function winnerOf(totals) { return totals[0] > totals[1] ? 0 : totals[1] > totals[0] ? 1 : -1; }
+
+  function makeRecord(g, forfeit, now) {
+    if (forfeit ? !canForfeit(g) : !canRecord(g)) throw new Error('game cannot be recorded');
+    return {
+      id: g.id,
+      started: g.started,
+      finished: now || new Date().toISOString(),
+      site: g.site || '',
+      teams: g.teams.slice(),
+      totals: totalsThrough(g, 4),
+      red3: [0, 1].map(t => g.rounds.reduce((s, r) => s + num(r[t].red3), 0)),
+      forfeit: !!forfeit,
+      rounds: forfeit ? g.finished + 1 : 4,
+    };
+  }
+
+  // ---- history -------------------------------------------------------
+  function isRecord(x) {
+    return !!x && typeof x === 'object' && typeof x.id === 'string' && typeof x.finished === 'string' &&
+      Array.isArray(x.totals) && x.totals.length === 2 && x.totals.every(Number.isFinite) &&
+      Array.isArray(x.red3) && x.red3.length === 2 && x.red3.every(Number.isFinite);
+  }
+
+  const byFinished = (a, b) => (a.finished < b.finished ? -1 : a.finished > b.finished ? 1 : 0);
+
+  function summarize(history) {
+    const h = history.slice().sort(byFinished);
+    const s = { games: h.length, wins: [0, 0], ties: 0, points: [0, 0], red3: [0, 0], high: [null, null],
+                forfeits: 0, avg: [0, 0], streak: null };
+    for (const g of h) {
+      const w = winnerOf(g.totals);
+      if (w < 0) s.ties++; else s.wins[w]++;
+      for (let t = 0; t < 2; t++) {
+        s.points[t] += g.totals[t];
+        s.red3[t] += g.red3[t];
+        if (s.high[t] === null || g.totals[t] > s.high[t]) s.high[t] = g.totals[t];
+      }
+      if (g.forfeit) s.forfeits++;
+    }
+    if (h.length) {
+      s.avg = s.points.map(p => Math.round(p / h.length));
+      const w = winnerOf(h[h.length - 1].totals);
+      if (w >= 0) {
+        let n = 0;
+        for (let i = h.length - 1; i >= 0 && winnerOf(h[i].totals) === w; i--) n++;
+        s.streak = { team: w, n };
+      }
+    }
+    s.lead = s.points[0] - s.points[1];
+    return s;
+  }
+
+  // 0 = same order, 1 = reversed, null = names don't match (user must choose)
+  function autoMap(localTeams, fileTeams) {
+    if (!Array.isArray(fileTeams) || fileTeams.length !== 2) return null;
+    const L = localTeams.map(x => String(x).trim().toLowerCase());
+    const F = fileTeams.map(x => String(x).trim().toLowerCase());
+    if (L[0] === F[0] && L[1] === F[1]) return 0;
+    if (L[0] === F[1] && L[1] === F[0]) return 1;
+    return null;
+  }
+
+  // Union keyed by game id. Incoming records are re-labelled with local team names;
+  // swap=1 reverses their team order first.
+  function mergeHistory(local, incoming, swap, localTeams) {
+    const ids = new Set(local.map(g => g.id));
+    const added = [];
+    let invalid = 0, dup = 0;
+    for (const g of incoming || []) {
+      if (!isRecord(g)) { invalid++; continue; }
+      if (ids.has(g.id)) { dup++; continue; }
+      const c = JSON.parse(JSON.stringify(g));
+      if (swap) { c.totals.reverse(); c.red3.reverse(); }
+      c.teams = localTeams.slice();
+      ids.add(c.id);
+      added.push(c);
+    }
+    return { history: local.concat(added).sort(byFinished), added: added.length, duplicates: dup, invalid };
+  }
+
+  // ---- persistence shapes -------------------------------------------
+  function normalizeSettings(s) {
+    const d = defaultSettings();
+    s = s && typeof s === 'object' ? s : {};
+    const out = {
+      teams: Array.isArray(s.teams) && s.teams.length === 2 ? s.teams.map(String) : d.teams,
+      site: typeof s.site === 'string' ? s.site : '',
+      pts: Object.assign({}, d.pts),
+      meldTable: Array.isArray(s.meldTable) && s.meldTable.length &&
+                 s.meldTable.every(r => Array.isArray(r) && r.length === 2 && r.every(Number.isFinite))
+                 ? s.meldTable.map(r => r.slice()) : d.meldTable,
+    };
+    if (s.pts && typeof s.pts === 'object')
+      for (const k of PT_KEYS) if (Number.isFinite(s.pts[k])) out.pts[k] = s.pts[k];
+    return out;
+  }
+
+  function validateSettings(s) {
+    const errs = [];
+    if (s.teams.some(t => !String(t).trim())) errs.push('Both team names are required');
+    if (s.teams[0].trim().toLowerCase() === s.teams[1].trim().toLowerCase()) errs.push('Team names must differ');
+    for (const k of PT_KEYS) if (!Number.isInteger(s.pts[k]) || s.pts[k] < 0) errs.push(`Points for ${k} must be a whole number >= 0`);
+    if (!s.meldTable.length) errs.push('Meld table needs at least one row');
+    for (const [th, v] of s.meldTable) if (!Number.isInteger(th) || !Number.isInteger(v) || v < 0) errs.push('Meld table entries must be whole numbers');
+    const ths = s.meldTable.map(r => r[0]);
+    if (new Set(ths).size !== ths.length) errs.push('Meld thresholds must be unique');
+    return errs;
+  }
+
+  function migrate(d) {
+    if (!d || typeof d !== 'object') return { schema: SCHEMA, settings: defaultSettings(), current: null, history: [] };
+    return {
+      schema: SCHEMA,
+      settings: normalizeSettings(d.settings),
+      current: d.current && typeof d.current === 'object' && Array.isArray(d.current.rounds) ? d.current : null,
+      history: Array.isArray(d.history) ? d.history.filter(isRecord).sort(byFinished) : [],
+    };
+  }
+
+  function exportData(state, now) {
+    return { app: APP, schema: SCHEMA, exported: now || new Date().toISOString(),
+             settings: state.settings, history: state.history, current: state.current };
+  }
+
+  function parseImport(text) {
+    let d;
+    try { d = JSON.parse(text); } catch (e) { return { error: 'Not a valid JSON file' }; }
+    if (!d || d.app !== APP) return { error: 'Not a Hand-Foot-Toe export file' };
+    if (typeof d.schema !== 'number' || d.schema > SCHEMA) return { error: 'File was written by a newer version of this page' };
+    const m = migrate(d);
+    return { exported: d.exported || '', settings: m.settings, history: m.history, current: m.current,
+             rawTeams: d.settings && d.settings.teams };
+  }
+
+  return { SCHEMA, APP, FIELDS, PT_KEYS, defaultSettings, blankEntry, parseCell, cellError, roundScore, meldFor,
+           newId, newGame, roundScores, totalsThrough, lastReachable, meldInfo, outCount, validate,
+           canFinishRound, finishRound, canRecord, canForfeit, winnerOf, makeRecord, isRecord, summarize,
+           autoMap, mergeHistory, normalizeSettings, validateSettings, migrate, exportData, parseImport };
+})();
+</script>
+
+<!-- ===================================================================
+     UI
+     =================================================================== -->
+<script id="ui">
+(() => {
+  'use strict';
+  const KEY = 'hft.v1';
+  const $ = (s, el = document) => el.querySelector(s);
+  const $$ = (s, el = document) => Array.from(el.querySelectorAll(s));
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g,
+    c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const fmt = v => Number(v).toLocaleString('en-US');
+  const fmtDate = iso => { const d = new Date(iso); return isNaN(d) ? '' :
+    d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }); };
+
+  // ---- storage -------------------------------------------------------
+  let storageOK = true;
+  function load() {
+    let raw = null;
+    try { raw = localStorage.getItem(KEY); } catch (e) { storageOK = false; return HFT.migrate(null); }
+    if (!raw) return HFT.migrate(null);
+    try { return HFT.migrate(JSON.parse(raw)); }
+    catch (e) {
+      try { localStorage.setItem(KEY + '.corrupt.' + Date.now(), raw); } catch (_) {}
+      return HFT.migrate(null);
+    }
+  }
+  let state = load();
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify(state)); }
+    catch (e) { storageOK = false; }
+    $('#banner').hidden = storageOK;
+  }
+
+  // ---- tabs ----------------------------------------------------------
+  const renderers = { game: renderGame, history: renderHistory, settings: renderSettings, data: renderData,
+                      rules: renderRules };
+  function show(tab) {
+    for (const k in renderers) $('#tab-' + k).hidden = k !== tab;
+    $$('nav button').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+    renderers[tab]();
+  }
+  $$('nav button').forEach(b => b.addEventListener('click', () => show(b.dataset.tab)));
+
+  // ---- game ----------------------------------------------------------
+  function lastGameHTML(rec) {
+    const w = HFT.winnerOf(rec.totals);
+    const T = state.settings.teams;
+    const result = w < 0 ? 'Tie game' :
+      `<span class="t${w}">${esc(T[w])}</span> won by ${fmt(Math.abs(rec.totals[0] - rec.totals[1]))}`;
+    return `<div class="lastgame">
+      <div class="muted small">Last game · ${esc(fmtDate(rec.finished))}${rec.site ? ' · ' + esc(rec.site) : ''}${rec.forfeit ? ` · forfeit after round ${rec.rounds}` : ''}</div>
+      <div class="score"><span class="t0">${esc(T[0])} ${fmt(rec.totals[0])}</span>
+        <span class="muted">–</span> <span class="t1">${esc(T[1])} ${fmt(rec.totals[1])}</span></div>
+      <div>${result}</div></div>`;
+  }
+
+  function renderGame() {
+    const el = $('#tab-game');
+    const g = state.current;
+    if (!g) {
+      const last = state.history[state.history.length - 1];
+      const S = state.settings;
+      el.innerHTML = `<div class="empty">
+        ${last ? lastGameHTML(last) : '<p class="muted">No game in progress.</p>'}
+        <p style="margin-top:18px"><button class="btn primary" id="new-game">Start new game</button></p>
+        <p class="muted small"><span class="t0">${esc(S.teams[0])}</span> vs <span class="t1">${esc(S.teams[1])}</span>${S.site ? ' · at ' + esc(S.site) : ''}</p>
+      </div>${recentHTML()}`;
+      $('#new-game').onclick = () => {
+        state.current = HFT.newGame(state.settings);
+        save(); renderGame(); focusFirst(0);
+      };
+      return;
+    }
+
+    const cur = g.finished;            // index of round being played (4 = all done)
+    const reach = HFT.lastReachable(g);
+    const cls = (r, t) => `${t === 0 ? 'ta' : ''} ${r === cur ? 'cur' : ''}`;
+    const row = (trCls, label, cell) => {
+      let h = `<tr class="${trCls}"><th scope="row">${label}</th>`;
+      for (let r = 0; r < 4; r++) for (let t = 0; t < 2; t++) h += `<td class="num ${cls(r, t)}">${cell(r, t)}</td>`;
+      return h + '</tr>';
+    };
+    const hint = f => f.kind === 'neg' ? '<span class="hint">−</span>' :
+      f.kind === 'pts' ? '<span class="hint">+</span>' : `<span class="hint">×${fmt(g.pts[f.key])}</span>`;
+    const input = (r, t, f, fi) => {
+      const editable = r <= reach;
+      const v = g.rounds[r][t][f.key];
+      const common = `id="in-${r}-${t}-${f.key}" data-r="${r}" data-t="${t}" data-k="${f.key}" ` +
+        `aria-label="Round ${r + 1} ${esc(g.teams[t])} ${esc(f.label)}" ` +
+        (editable ? `tabindex="${1 + r * 100 + t * 20 + fi}"` : 'disabled');
+      return f.kind === 'bool'
+        ? `<input type="checkbox" ${common} ${v ? 'checked' : ''}>`
+        : `<input type="text" inputmode="numeric" autocomplete="off" ${common} value="${v == null ? '' : esc(v)}">`;
+    };
+
+    let h = `<div class="board" id="board"></div><div class="tablewrap"><table class="sheet" id="sheet"><thead><tr><th></th>`;
+    for (let r = 0; r < 4; r++)
+      h += `<th colspan="2" class="round ${r === cur ? 'cur' : ''}">Round ${r + 1}${r < g.finished ? '<span class="done">done</span>' : ''}</th>`;
+    h += '</tr><tr><th></th>';
+    for (let r = 0; r < 4; r++) for (let t = 0; t < 2; t++)
+      h += `<th class="team t${t} ${cls(r, t)}">${esc(g.teams[t])}</th>`;
+    h += '</tr></thead><tbody>';
+    h += row('meld', 'Meld', (r, t) => `<span id="meld-${r}-${t}"></span>`);
+    HFT.FIELDS.forEach((f, fi) => { h += row(f.key === 'deal' ? 'sep' : '', esc(f.label) + hint(f), (r, t) => input(r, t, f, fi)); });
+    h += row('computed sep', 'Round score', (r, t) => `<span id="score-${r}-${t}"></span>`);
+    h += row('computed', 'Game total', (r, t) => `<span id="total-${r}-${t}"></span>`);
+    h += row('small muted', 'Round margin', (r, t) => `<span id="by-${r}-${t}"></span>`);
+    h += '</tbody></table></div>';
+    h += `<div class="actions">
+      ${cur < 4 ? `<button class="btn primary" id="finish-round">Finish round ${cur + 1}</button>`
+                : `<button class="btn primary" id="record">Record game</button>`}
+      <span id="finish-hint" class="muted small"></span>
+      <span class="spacer"></span>
+      ${cur < 4 ? '<button class="btn" id="forfeit">Forfeit…</button>' : ''}
+      <button class="btn danger" id="discard">Discard game…</button>
+    </div>
+    <ul class="errors" id="errors"></ul>
+    <p class="muted small">Meld shows <b>original / updated</b> when a correction to an earlier round changes it.
+      Enter and Tab move down each team's column.</p>${recentHTML()}`;
+    el.innerHTML = h;
+
+    const sheet = $('#sheet');
+    sheet.addEventListener('input', ev => { if (ev.target.type === 'text') onCell(ev.target); });
+    sheet.addEventListener('change', ev => { if (ev.target.type === 'checkbox') onCell(ev.target); });
+    sheet.addEventListener('keydown', ev => {
+      if (ev.key === 'Enter' && ev.target.matches('input')) { ev.preventDefault(); moveFocus(ev.target, ev.shiftKey ? -1 : 1); }
+    });
+    sheet.addEventListener('focusin', ev => { if (ev.target.type === 'text') ev.target.select(); });
+
+    if (cur < 4) {
+      $('#finish-round').onclick = () => {
+        HFT.finishRound(g); save(); renderGame();
+        if (g.finished < 4) focusFirst(g.finished); else $('#record').focus();
+      };
+      $('#forfeit').onclick = () => {
+        const t = HFT.totalsThrough(g, 4);
+        if (!confirm(`Forfeit and record this game?\n\nRound ${cur + 1} is scored as entered.\n` +
+          `${g.teams[0]} ${fmt(t[0])} – ${g.teams[1]} ${fmt(t[1])}`)) return;
+        record(true);
+      };
+    } else {
+      $('#record').onclick = () => {
+        const t = HFT.totalsThrough(g, 4);
+        if (!confirm(`Record final score?\n\n${g.teams[0]} ${fmt(t[0])} – ${g.teams[1]} ${fmt(t[1])}\n\n` +
+          'A recorded game cannot be changed.')) return;
+        record(false);
+      };
+    }
+    $('#discard').onclick = () => {
+      if (!confirm('Discard this game without recording it?')) return;
+      state.current = null; save(); renderGame();
+    };
+    updateGame();
+  }
+
+  function record(forfeit) {
+    const rec = HFT.makeRecord(state.current, forfeit);
+    state.history.push(rec);
+    state.current = null;
+    save(); renderGame();
+  }
+
+  function onCell(i) {
+    const g = state.current;
+    const r = +i.dataset.r, t = +i.dataset.t, k = i.dataset.k;
+    if (i.type === 'checkbox') {
+      g.rounds[r][t][k] = i.checked;
+      if (k === 'out' && i.checked) {
+        g.rounds[r][1 - t].out = false;
+        const o = $(`#in-${r}-${1 - t}-out`); if (o) o.checked = false;
+      }
+    } else {
+      g.rounds[r][t][k] = HFT.parseCell(i.value);
+    }
+    save(); updateGame();
+  }
+
+  function editableInputs() {
+    return $$('#sheet input:not(:disabled)').sort((a, b) => a.tabIndex - b.tabIndex);
+  }
+  function moveFocus(from, dir) {
+    const list = editableInputs();
+    const i = list.indexOf(from);
+    const next = list[i + dir];
+    if (next) next.focus();
+  }
+  function focusFirst(r) { const el = $(`#in-${r}-0-deal`); if (el) el.focus(); }
+
+  function updateGame() {
+    const g = state.current; if (!g) return;
+    const rs = HFT.roundScores(g);
+    const reach = HFT.lastReachable(g);
+    const cum = [0, 0];
+    for (let r = 0; r < 4; r++) {
+      const on = r <= reach;
+      for (let t = 0; t < 2; t++) {
+        cum[t] += rs[r][t];
+        $(`#score-${r}-${t}`).textContent = on ? fmt(rs[r][t]) : '';
+        $(`#total-${r}-${t}`).textContent = on ? fmt(cum[t]) : '';
+        const d = rs[r][t] - rs[r][1 - t];
+        $(`#by-${r}-${t}`).textContent = on && d > 0 ? '+' + fmt(d) : '';
+        const m = HFT.meldInfo(g, r, t), me = $(`#meld-${r}-${t}`);
+        me.textContent = m ? (m.changed ? `${m.orig} / ${m.cur}` : String(m.orig)) : '';
+        me.className = m && m.changed ? 'changed' : '';
+        me.title = m && m.changed ? 'original / updated' : '';
+        for (const f of HFT.FIELDS) {
+          const inp = $(`#in-${r}-${t}-${f.key}`);
+          inp.classList.toggle('bad', !!HFT.cellError(g.rounds[r][t][f.key], f.kind));
+        }
+      }
+    }
+
+    const T = HFT.totalsThrough(g, 4);
+    const w = HFT.winnerOf(T);
+    const lead = w < 0 ? 'Tied' : `<span class="t${w}">${esc(g.teams[w])}</span> lead by ${fmt(Math.abs(T[0] - T[1]))}`;
+    const meldLine = t => {
+      if (g.finished >= 4) return 'All rounds finished';
+      const m = HFT.meldInfo(g, g.finished, t);
+      return `Meld this round: ${m.changed ? `${m.orig} / ${m.cur}` : m.orig}`;
+    };
+    $('#board').innerHTML = [0, 1].map(t => `<div class="teamcard"><div class="tname t${t}">${esc(g.teams[t])}</div>
+        <div class="ttotal num">${fmt(T[t])}</div><div class="tmeta">${meldLine(t)}</div></div>`)
+      .join(`<div class="mid"><div class="muted small">${g.finished < 4 ? `Round ${g.finished + 1} of 4` : 'Game complete'}${g.site ? ' · ' + esc(g.site) : ''}</div>
+        <div class="lead">${lead}</div></div>`);
+
+    const errs = HFT.validate(g);
+    $('#errors').innerHTML = errs.map(e => `<li>${esc(e)}</li>`).join('');
+    const hintEl = $('#finish-hint');
+    if (g.finished < 4) {
+      $('#finish-round').disabled = !HFT.canFinishRound(g);
+      $('#forfeit').disabled = !HFT.canForfeit(g);
+      hintEl.textContent = !errs.length && HFT.outCount(g, g.finished) !== 1 ? 'Mark which team went out to finish the round.' : '';
+    } else {
+      $('#record').disabled = !HFT.canRecord(g);
+      hintEl.textContent = '';
+    }
+  }
+
+  // ---- history -------------------------------------------------------
+  function historyTableHTML(rows) {           // rows newest first
+    const T = state.settings.teams;
+    let h = `<table class="list"><thead><tr><th>Date</th><th>Location</th>
+      <th class="num t0">${esc(T[0])}</th><th class="num t1">${esc(T[1])}</th><th>Winner</th><th class="num">Margin</th>
+      <th class="num">Red 3s</th><th></th></tr></thead><tbody>`;
+    for (const g of rows) {
+      const w = HFT.winnerOf(g.totals);
+      h += `<tr class="win${w}"><td>${esc(fmtDate(g.finished))}</td><td>${esc(g.site)}</td>
+        <td class="num s0">${fmt(g.totals[0])}</td><td class="num s1">${fmt(g.totals[1])}</td>
+        <td>${w < 0 ? 'tie' : `<span class="t${w}">${esc(T[w])}</span>`}</td>
+        <td class="num">${fmt(Math.abs(g.totals[0] - g.totals[1]))}</td>
+        <td class="num">${g.red3[0]} / ${g.red3[1]}</td>
+        <td class="muted small">${g.forfeit ? `forfeit, round ${g.rounds}` : ''}</td></tr>`;
+    }
+    return h + '</tbody></table>';
+  }
+
+  function recentHTML() {
+    const H = state.history;
+    if (!H.length) return '';
+    return `<h2>Recent games</h2>${historyTableHTML(H.slice(-4).reverse())}`;
+  }
+
+  let histSite = '*';
+  function renderHistory() {
+    const el = $('#tab-history');
+    const H = state.history, T = state.settings.teams;
+    if (!H.length) { el.innerHTML = '<p class="muted">No recorded games yet.</p>'; return; }
+    const sites = [...new Set(H.map(g => g.site || ''))].sort();
+    if (histSite !== '*' && !sites.includes(histSite)) histSite = '*';
+    const list = histSite === '*' ? H : H.filter(g => (g.site || '') === histSite);
+    const s = HFT.summarize(list);
+    const pair = (a, b) => `<span class="t0">${a}</span><span class="sep">/</span><span class="t1">${b}</span>`;
+    const leadTxt = s.lead === 0 ? 'Even' : `<span class="t${s.lead > 0 ? 0 : 1}">${esc(T[s.lead > 0 ? 0 : 1])}</span> +${fmt(Math.abs(s.lead))}`;
+    let h = '';
+    if (sites.length > 1) {
+      h += `<p>Played at: <select id="sitefilter"><option value="*">all locations</option>${
+        sites.map(x => `<option value="${esc(x)}" ${x === histSite ? 'selected' : ''}>${esc(x || '(no label)')}</option>`).join('')}</select></p>`;
+    }
+    h += `<div class="stats">
+      <div class="stat"><div class="k">Games</div><div class="v">${s.games}${s.forfeits ? ` <span class="muted small">(${s.forfeits} forfeit)</span>` : ''}</div></div>
+      <div class="stat"><div class="k">Wins ${esc(T[0])} / ${esc(T[1])}</div><div class="v">${pair(s.wins[0], s.wins[1])}${s.ties ? ` <span class="muted small">${s.ties} tie</span>` : ''}</div></div>
+      <div class="stat"><div class="k">Total points</div><div class="v">${pair(fmt(s.points[0]), fmt(s.points[1]))}</div></div>
+      <div class="stat"><div class="k">Points lead</div><div class="v">${leadTxt}</div></div>
+      <div class="stat"><div class="k">Red threes</div><div class="v">${pair(fmt(s.red3[0]), fmt(s.red3[1]))}</div></div>
+      <div class="stat"><div class="k">Average game</div><div class="v">${pair(fmt(s.avg[0]), fmt(s.avg[1]))}</div></div>
+      <div class="stat"><div class="k">High game</div><div class="v">${pair(fmt(s.high[0]), fmt(s.high[1]))}</div></div>
+      <div class="stat"><div class="k">Current streak</div><div class="v">${s.streak ? `<span class="t${s.streak.team}">${esc(T[s.streak.team])}</span> ${s.streak.n}` : '—'}</div></div>
+    </div>`;
+    h += historyTableHTML(list.slice().reverse());
+    el.innerHTML = h;
+    const sf = $('#sitefilter');
+    if (sf) sf.onchange = () => { histSite = sf.value; renderHistory(); };
+  }
+
+  // ---- settings ------------------------------------------------------
+  const PT_LABELS = { deal: 'Deal bonus', clean: 'Clean canasta', dirty: 'Dirty canasta', sevens: 'Sevens canasta',
+                      fives: 'Fives canasta', wilds: 'Wild canasta', red3: 'Red three', out: 'Going out' };
+  function renderSettings(draft) {
+    const S = draft || state.settings;
+    const el = $('#tab-settings');
+    el.innerHTML = `<form class="settings" id="sform" autocomplete="off">
+      <h2 style="margin-top:0">Teams</h2>
+      <div class="field"><label for="s-t0">Team 1</label><input id="s-t0" value="${esc(S.teams[0])}"></div>
+      <div class="field"><label for="s-t1">Team 2</label><input id="s-t1" value="${esc(S.teams[1])}"></div>
+      <div class="field"><label for="s-site">Location label</label><input id="s-site" value="${esc(S.site)}" placeholder="e.g. Rick's"></div>
+      <p class="muted small">The location label is stored with each game so merged histories show where it was played.</p>
+      <h2>Points</h2>
+      ${HFT.PT_KEYS.map(k => `<div class="field"><label for="s-p-${k}">${PT_LABELS[k]}</label>
+        <input class="n" id="s-p-${k}" inputmode="numeric" value="${S.pts[k]}"></div>`).join('')}
+      <h2>Meld requirement</h2>
+      <p class="muted small">Team score at start of round (at least) → points needed to meld.</p>
+      <div id="meldrows">${S.meldTable.map((r, i) => `<div class="meldrow">
+        <input inputmode="numeric" data-i="${i}" data-c="0" value="${r[0]}" aria-label="threshold"> →
+        <input inputmode="numeric" data-i="${i}" data-c="1" value="${r[1]}" aria-label="meld">
+        <button type="button" class="btn small" data-del="${i}" ${S.meldTable.length < 2 ? 'disabled' : ''}>Remove</button></div>`).join('')}</div>
+      <p><button type="button" class="btn" id="addmeld">Add row</button></p>
+      <p class="note">Changes apply to the next game started. A game in progress keeps the values it began with.</p>
+      <div class="actions"><button class="btn primary" type="submit">Save settings</button>
+        <button class="btn" type="button" id="sdefaults">Restore defaults</button><span id="sflash"></span></div>
+      <ul class="errors" id="serrors"></ul>
+    </form>`;
+
+    const read = () => {
+      const p = HFT.parseCell;
+      const pts = {}; for (const k of HFT.PT_KEYS) pts[k] = p($('#s-p-' + k).value);
+      const rows = [];
+      $$('#meldrows .meldrow').forEach(div => {
+        const [a, b] = $$('input', div).map(i => p(i.value));
+        rows.push([a, b]);
+      });
+      return { teams: [$('#s-t0').value.trim(), $('#s-t1').value.trim()], site: $('#s-site').value.trim(),
+               pts, meldTable: rows };
+    };
+    $('#addmeld').onclick = () => { const d = read(); const last = d.meldTable[d.meldTable.length - 1] || [0, 50];
+      d.meldTable.push([(Number(last[0]) || 0) + 7500, Number(last[1]) || 50]); renderSettings(d); };
+    $$('[data-del]').forEach(b => b.onclick = () => { const d = read(); d.meldTable.splice(+b.dataset.del, 1); renderSettings(d); });
+    $('#sdefaults').onclick = () => renderSettings(Object.assign(HFT.defaultSettings(),
+      { teams: read().teams, site: read().site }));
+    $('#sform').onsubmit = ev => {
+      ev.preventDefault();
+      const d = read();
+      const errs = HFT.validateSettings(d);
+      $('#serrors').innerHTML = errs.map(e => `<li>${esc(e)}</li>`).join('');
+      if (errs.length) return;
+      d.meldTable.sort((a, b) => a[0] - b[0]);
+      state.settings = d; save();
+      renderSettings();
+      $('#sflash').innerHTML = '<span class="flash">Saved</span>';
+    };
+  }
+
+  // ---- import / export -----------------------------------------------
+  function renderData() {
+    const el = $('#tab-data');
+    el.innerHTML = `
+      <h2 style="margin-top:0">Export</h2>
+      <p>Saves this computer's history, settings and any game in progress to a file. Send it to the other
+        household to merge into their history, or keep it as a backup.</p>
+      <button class="btn primary" id="export">Export to file</button>
+      <h2>Import</h2>
+      <p>Choose an export file. New games are merged into this history; games already here are skipped,
+        so importing the same file twice is harmless.</p>
+      <input type="file" id="importfile" accept=".json,application/json">
+      <div id="importpanel"></div>
+      <h2>This computer</h2>
+      <p>${state.history.length} recorded game${state.history.length === 1 ? '' : 's'}.
+        ${state.current ? 'A game is in progress.' : 'No game in progress.'}</p>
+      <button class="btn danger" id="erase">Erase all data…</button>`;
+
+    $('#export').onclick = () => {
+      const now = new Date();
+      const data = HFT.exportData(state, now.toISOString());
+      const stamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
+      const slug = (state.settings.site || 'export').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'export';
+      const blob = new Blob([JSON.stringify(data, null, 1)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `hft-${slug}-${stamp}.json`;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    };
+    $('#importfile').onchange = ev => {
+      const f = ev.target.files[0]; if (!f) return;
+      const rd = new FileReader();
+      rd.onload = () => showImport(HFT.parseImport(String(rd.result)), f.name);
+      rd.readAsText(f);
+    };
+    $('#erase').onclick = () => {
+      const ans = prompt('This deletes every recorded game, the settings and any game in progress on this computer.\n\nType ERASE to confirm.');
+      if (ans !== 'ERASE') return;
+      try { localStorage.removeItem(KEY); } catch (e) {}
+      state = HFT.migrate(null); save(); renderData();
+    };
+  }
+
+  function showImport(inc, name) {
+    const p = $('#importpanel');
+    if (inc.error) { p.innerHTML = `<div class="panel"><ul class="errors"><li>${esc(name)}: ${esc(inc.error)}</li></ul></div>`; return; }
+    const L = state.settings.teams;
+    const F = Array.isArray(inc.rawTeams) && inc.rawTeams.length === 2 ? inc.rawTeams : inc.settings.teams;
+    let swap = HFT.autoMap(L, F);
+    const needMap = swap === null;
+    if (needMap) swap = 0;
+
+    const draw = () => {
+      const m = HFT.mergeHistory(state.history, inc.history, swap, L);
+      const sites = [...new Set(inc.history.map(g => g.site).filter(Boolean))];
+      let h = `<div class="panel">
+        <p><b>${esc(name)}</b>${inc.exported ? ` · exported ${esc(fmtDate(inc.exported))}` : ''}${sites.length ? ' · from ' + esc(sites.join(', ')) : ''}<br>
+        ${inc.history.length} game${inc.history.length === 1 ? '' : 's'} in file: <b>${m.added} new</b>, ${m.duplicates} already here${m.invalid ? `, ${m.invalid} unreadable` : ''}.</p>`;
+      if (needMap) {
+        h += `<p>Team names differ. Their <b>${esc(F[0])}</b> is our
+          <select id="mapsel"><option value="0" ${swap === 0 ? 'selected' : ''}>${esc(L[0])}</option>
+          <option value="1" ${swap === 1 ? 'selected' : ''}>${esc(L[1])}</option></select>
+          and their <b>${esc(F[1])}</b> is our <b>${esc(L[swap ? 0 : 1])}</b>.</p>`;
+      } else if (swap === 1) {
+        h += '<p class="muted small">Their team order is reversed; scores will be matched by team name.</p>';
+      }
+      h += `<div class="actions">
+        <button class="btn primary" id="domerge" ${m.added ? '' : 'disabled'}>Merge ${m.added} game${m.added === 1 ? '' : 's'}</button>
+        <button class="btn" id="dosettings">Use this file's settings</button>
+        ${inc.current ? `<button class="btn" id="docurrent" ${state.current ? 'disabled title="Finish or discard the game in progress first"' : ''}>Load game in progress</button>` : ''}
+        <span id="iflash"></span></div></div>`;
+      p.innerHTML = h;
+      const ms = $('#mapsel'); if (ms) ms.onchange = () => { swap = +ms.value; draw(); };
+      $('#domerge').onclick = () => {
+        const r = HFT.mergeHistory(state.history, inc.history, swap, L);
+        state.history = r.history; save();
+        renderData();
+        $('#importpanel').innerHTML = `<div class="panel"><span class="flash">Merged ${r.added} game${r.added === 1 ? '' : 's'}.</span></div>`;
+      };
+      $('#dosettings').onclick = () => {
+        if (!confirm("Replace this computer's settings (team names, location, points, meld table) with the file's?")) return;
+        state.settings = HFT.normalizeSettings(inc.settings); save();
+        $('#iflash').innerHTML = '<span class="flash">Settings replaced</span>';
+      };
+      const dc = $('#docurrent');
+      if (dc) dc.onclick = () => {
+        if (state.current) return;
+        state.current = inc.current; save();
+        $('#iflash').innerHTML = '<span class="flash">Game loaded — see the Game tab</span>';
+        dc.disabled = true;
+      };
+    };
+    draw();
+  }
+
+  // ---- rules ---------------------------------------------------------
+  // Point values and the meld table are read from Settings so the rules always match the scoring.
+  function renderRules() {
+    const P = state.settings.pts;
+    const M = state.settings.meldTable.slice().sort((a, b) => a[0] - b[0]);
+    const v = k => fmt(P[k]);
+    const meldRows = M.map((r, i) => `<tr><td class="num">${fmt(r[0])}${i < M.length - 1 ? ' – ' + fmt(M[i + 1][0] - 1) : ' +'}</td>
+      <td class="num">${fmt(r[1])}</td></tr>`).join('');
+    const sections = [
+      ['overview', 'Overview'], ['cards', 'Cards and values'], ['deal', 'Dealing'], ['turn', 'A turn'],
+      ['meld', 'The initial meld'], ['melds', 'Melds'], ['canastas', 'Canastas'], ['discard', 'Taking the discard pile'],
+      ['foottoe', 'Foot and toe'], ['out', 'Going out'], ['scoring', 'Scoring a round'], ['winning', 'Winning'],
+      ['house', 'House rules'],
+    ];
+    $('#tab-rules').innerHTML = `<article class="rules">
+<p class="muted small" style="margin-top:0">Point values and meld requirements on this page come from Settings.</p>
+<ol class="toc">${sections.map(([id, t]) => `<li><a href="#r-${id}">${t}</a></li>`).join('')}</ol>
+
+<h2 id="r-overview">Overview</h2>
+<ul>
+  <li>Four players in two partnerships. Partners sit across from each other; play goes clockwise.</li>
+  <li>Six standard decks, jokers included (324 cards).</li>
+  <li>Each player gets three piles: a <b>hand</b> (15 cards), a <b>foot</b> (13) and a <b>toe</b> (11), played in that order.</li>
+  <li>A game is four rounds. Each round is scored on its own; the round scores add up to the game score.</li>
+  <li>Partners never share cards or information about their cards.</li>
+</ul>
+
+<h2 id="r-cards">Cards and values</h2>
+<table class="qr"><thead><tr><th>Card</th><th class="num">Points</th><th>Notes</th></tr></thead><tbody>
+  <tr><td>Joker</td><td class="num">50</td><td>Wild</td></tr>
+  <tr><td>2</td><td class="num">20</td><td>Wild</td></tr>
+  <tr><td>Ace</td><td class="num">20</td><td></td></tr>
+  <tr><td>8 through King</td><td class="num">10</td><td></td></tr>
+  <tr><td>4 through 7</td><td class="num">5</td><td></td></tr>
+  <tr><td>Black 3</td><td class="num">5</td><td>Never melded; only blocks the discard pile. Counts only as a penalty.</td></tr>
+  <tr><td>Red 3</td><td class="num">${v('red3')}</td><td>Bonus when tabled; penalty if still held when the round ends.</td></tr>
+</tbody></table>
+<p>All other cards are <b>natural</b> cards.</p>
+
+<h2 id="r-deal">Dealing</h2>
+<h3>Who starts</h3>
+<ul>
+  <li>Round 1: after the shuffle each player cuts for a card. High card starts. 2 is low, ace beats king, a joker beats everything.
+    Tied players re-cut until there is no tie.</li>
+  <li>Rounds 2–4: the start moves one player clockwise each round.</li>
+</ul>
+<h3>The deal</h3>
+<ol>
+  <li>The starting player cuts a stack from the deck and deals four hands of 15 cards, each a separate stack in front of them.</li>
+  <li>The next player clockwise cuts a stack and deals four feet of 13.</li>
+  <li>The next player clockwise cuts a stack and deals four toes of 11.</li>
+  <li>The fourth player takes a nap.</li>
+  <li>The stacks are handed out to all four players: toes first, then feet, then hands.
+    Foot and toe stay face down and unseen until they are picked up.</li>
+  <li>The rest of the cards are the stock. No card is turned up; the discard pile starts with the first discard.</li>
+</ol>
+<div class="key"><b>Deal bonus (${v('deal')}):</b> if the hand dealer's cut is exactly 60 cards, or the foot dealer's cut is exactly
+  52 cards, that dealer's team scores ${v('deal')}. The toe is not eligible. The hand and foot dealers are on opposite teams,
+  so a team can earn at most one deal bonus per round.</div>
+
+<h2 id="r-turn">A turn</h2>
+<ol>
+  <li><b>Red threes in hand.</b> At the start of the turn, before drawing, the player may table red threes they are holding
+    (including any dealt to them) and draw two replacement cards from the stock for each one. This is the only time red threes
+    already in hand can be tabled.</li>
+  <li><b>Draw.</b> Either draw two cards from the stock, or take the discard pile (see <a href="#r-discard">Taking the discard pile</a>).
+    <ul>
+      <li>A red three drawn may be tabled immediately and replaced with two more cards from the stock. Every further red three
+        drawn may be replaced the same way.</li>
+      <li>A red three does not have to be tabled. One still held when someone goes out is a penalty.</li>
+    </ul></li>
+  <li><b>Play.</b> Lay down melds, add to melds, complete canastas.</li>
+  <li><b>Discard</b> one card. A discard is required to end every turn except the one in which the player goes out.</li>
+</ol>
+<p>The player who started the deal plays first. If the stock runs out, shuffle the discard pile to make a new stock.</p>
+
+<h2 id="r-meld">The initial meld</h2>
+<p>Before a team can put cards on the table, one partner must lay down melds worth at least the team's meld requirement,
+  in a single turn, using only their own cards. After that, both partners may play freely.</p>
+<table class="qr"><thead><tr><th class="num">Team score at start of round</th><th class="num">Meld needed</th></tr></thead>
+  <tbody>${meldRows}</tbody></table>
+<ul>
+  <li>The requirement comes from the team's game score after the previous rounds. Round 1 always needs ${fmt(M[0][1])}; a negative score also needs ${fmt(M[0][1])}.</li>
+  <li>Only melded cards count, at their card values. Red threes, the deal bonus and discards count for nothing.</li>
+  <li>A canasta laid down as part of the initial meld counts only its card values, not its canasta bonus.</li>
+  <li>The partner cannot contribute cards or help.</li>
+</ul>
+
+<h2 id="r-melds">Melds</h2>
+<ul>
+  <li>A meld is at least 3 cards of the same rank: 3 naturals, or 2 naturals and 1 wild.</li>
+  <li>Naturals must outnumber wilds in a meld at all times (4 naturals + 3 wilds at most in 7 cards).
+    The one exception is a meld made entirely of wild cards, which builds toward a wild canasta.</li>
+  <li>Threes are never melded. Red threes are tabled as bonuses; black threes are never played.</li>
+  <li>A team may have only one open meld of any rank at a time. A new meld of that rank can be started only after the open one
+    becomes a canasta and moves to the completed board (immediately, if the player has the cards). So a dirtied meld of sevens
+    must be completed as a dirty canasta before a new, possibly clean, meld of sevens can be started.</li>
+  <li>Usual practice: one partner keeps the <b>meld board</b> (melds still being built), the other keeps the
+    <b>completed board</b> (finished canastas and red threes).</li>
+</ul>
+
+<h2 id="r-canastas">Canastas</h2>
+<p>A meld becomes a canasta when it reaches exactly 7 cards, and it moves to the completed board.</p>
+<table class="qr"><thead><tr><th>Canasta</th><th>Made of</th><th class="num">Bonus</th></tr></thead><tbody>
+  <tr><td>Clean</td><td>7 naturals</td><td class="num">${v('clean')}</td></tr>
+  <tr><td>Dirty</td><td>7 cards including wilds; naturals outnumber wilds</td><td class="num">${v('dirty')}</td></tr>
+  <tr><td>Sevens</td><td>7 natural sevens</td><td class="num">${v('sevens')}</td></tr>
+  <tr><td>Fives</td><td>7 natural fives</td><td class="num">${v('fives')}</td></tr>
+  <tr><td>Wild</td><td>7 wild cards, any mix of jokers and 2s</td><td class="num">${v('wilds')}</td></tr>
+</tbody></table>
+<h3>Base and regular canastas</h3>
+<ul>
+  <li>The completed board has a <b>base</b>: one clean, one dirty, one sevens, one fives and one wild canasta.
+    The base is what a team needs to go out.</li>
+  <li>Further sevens, fives or wild canastas also go in the base (two sevens canastas, for example).</li>
+  <li>Further clean and dirty canastas are <b>regular</b> canastas.</li>
+  <li>Sevens or fives that include wild cards make an ordinary dirty canasta. It is a regular canasta, scores as dirty,
+    and does not count as the base sevens or fives.</li>
+</ul>
+<h3>Adding to canastas</h3>
+<ul>
+  <li>Base canastas are closed; nothing may be added to them.</li>
+  <li>A regular canasta may have natural cards of its own rank added to it.</li>
+  <li>Wild cards may never be added to any canasta.</li>
+  <li>The player who completes a canasta may not add to it until their next turn.</li>
+</ul>
+
+<h2 id="r-discard">Taking the discard pile</h2>
+<ul>
+  <li>Taking the pile means taking the top 7 cards, or the whole pile if it holds fewer than 7.</li>
+  <li>The player must hold two natural cards matching the top card and play them with it immediately, either as a new meld or
+    added to an existing meld of 3 or 4 cards. A meld of 5 or 6 cannot take three more cards, so it cannot be used.</li>
+  <li>The pile is <b>blocked</b> while the top card is a black three, a red three or a wild card. It stays blocked until another
+    card is discarded on top.</li>
+  <li><b>Before the team has melded:</b> the pile may be taken only if the top card, together with cards in the player's hand,
+    makes the initial meld. The player takes the top card, lays down the meld, and only then takes the other six cards.</li>
+</ul>
+
+<h2 id="r-foottoe">Foot and toe</h2>
+<h3>The foot (picked up by the team)</h3>
+<ul>
+  <li>A team may pick up its feet once it has completed its first canasta.</li>
+  <li>The player who completed the canasta does not pick up during that turn. The partner may look at their foot right away but
+    cannot play it until their own turn.</li>
+  <li>When the player who completed the canasta finishes their turn, both partners pick up their feet; each foot joins the
+    cards left in that player's hand.</li>
+  <li>A player can empty their hand only by discarding its last card; the last card of the hand may never be melded.</li>
+</ul>
+<h3>The toe (picked up by each player)</h3>
+<ul>
+  <li>A player picks up their toe as soon as they have played every card from their hand and foot.</li>
+  <li>If that happens during play, they pick up the toe immediately and keep playing.</li>
+  <li>If their discard empties their hand, they pick up the toe at the start of their next turn.</li>
+</ul>
+
+<h2 id="r-out">Going out</h2>
+<ul>
+  <li>To go out, the team's base must be complete: at least one clean, one dirty, one sevens, one fives and one wild canasta.</li>
+  <li>The player going out must be playing from their toe and must ask their partner's permission first.</li>
+  <li>Until going out, a player must always be able to discard one card and still keep at least one card.</li>
+  <li>The player goes out by getting rid of every card. The last card may be played or discarded; no discard is required.</li>
+  <li>The round ends at once. Every card still held by anyone, including feet and toes not yet reached, counts against that
+    player's team.</li>
+</ul>
+
+<h2 id="r-scoring">Scoring a round</h2>
+<table class="qr"><thead><tr><th>Item</th><th class="num">Points</th></tr></thead><tbody>
+  <tr><td>Deal bonus</td><td class="num">${v('deal')}</td></tr>
+  <tr><td>Clean canasta</td><td class="num">${v('clean')} each</td></tr>
+  <tr><td>Dirty canasta</td><td class="num">${v('dirty')} each</td></tr>
+  <tr><td>Sevens canasta</td><td class="num">${v('sevens')} each</td></tr>
+  <tr><td>Fives canasta</td><td class="num">${v('fives')} each</td></tr>
+  <tr><td>Wild canasta</td><td class="num">${v('wilds')} each</td></tr>
+  <tr><td>Red three tabled</td><td class="num">${v('red3')} each</td></tr>
+  <tr><td>Going out</td><td class="num">${v('out')}</td></tr>
+  <tr><td>Cards on the table (melds and canastas)</td><td class="num">plus card values</td></tr>
+  <tr><td>Cards not played: in hand, unreached foot and toe, held red threes</td><td class="num">minus card values</td></tr>
+</tbody></table>
+<p>Canasta bonuses and the card count are separate: a canasta's cards are also counted at face value.</p>
+
+<h2 id="r-winning">Winning</h2>
+<ul>
+  <li>After four rounds the team with the higher game score wins. A tie stands.</li>
+  <li>A team that is behind may forfeit. The round in progress is scored as it stands, and the leading team wins.</li>
+</ul>
+
+<h2 id="r-house">House rules</h2>
+<p class="chaos">Chaos rules.</p>
+</article>`;
+  }
+
+  // ---- boot ----------------------------------------------------------
+  try { const k = KEY + '.probe'; localStorage.setItem(k, '1'); localStorage.removeItem(k); }
+  catch (e) { storageOK = false; }
+  $('#banner').hidden = storageOK;
+  show('game');
+})();
+</script>
+</body>
+</html>

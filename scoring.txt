@@ -1,0 +1,71 @@
+Typical play means two teams of two people each.
+
+The game is played with six decks of cards including jokers
+
+The game has four rounds. Each round is scored separately from all the
+other rounds.
+
+After the initial shuffle, each player cuts the deck for a card to see
+who gets to go first. Highest card wins, Jokers are the highest, two
+is lowest.
+
+the first round starts with the high card player cutting off a stack
+of cards to deal the 15 card hand, The next player clockwise cutting a
+stack to deal the 13 foot, and the next player cutting a stack to deal
+the 11 card toe.
+
+Each of the dealers will establish four stacks of cards in front of
+him or herself, each consisting of the appropriate number of
+cards.This phase results in the first scoring event of a round. If a
+player gets exactly the number of cards in his cut to complete his
+deal, the team scores 200 points.This is only applicable to the hand
+and the foot. The toe is not eligible for this bonus.
+
+After the three players have completed their individual deals in front
+of themselves, the cards, the stacks of cards are distributed to all
+four players. The first stack distributed is the toe, the second is
+the foot, the last is the hand.
+
+As the round begins, each team must meet a minimum required number of
+points to meld and start putting cards on the table from their
+hands. the meld value is based on the team's total score at the start
+of the round.
+
+
+score >=     0	requires  50 points to meld
+score >=  7500	requires  90 points to meld
+score >= 15000	requires 120 points to meld
+score >= 22500	requires 150 points to meld
+score >= 30000	requires 180 points to meld
+score >= 37500	requires 220 points to meld
+
+play continues until one team "goes out"
+
+Scoring at the end of the round consists of counting the number of
+clean canastas, dirty canastas, sevens canastas, fives canastas,
+wildcard canastas, and red threes.
+
+Each clean canasta is worth 500 points. Each dirty canasta is worth
+300 points. The seven's canastas are worth 2,000 points each. Five's
+canastas are worth 1500 points each, and ildcard canastas are worth a
+thousand points each. Red threes are worth 100 points each. In
+addition, the team that goes out gets an extra 500-point bonus.Cards
+held by any player after a team goes out are counted against the
+player's team.
+
+After the canastas and red threes are counted, the individual cards
+are counted. Cards held in a player's hand are negative, cards on the
+table are a positive.
+
+Card values are as follows four through seven are worth five points
+each, eight through king are worth 10 points each, twos and aces are
+worth 20 points each, wildcards are worth 50 points each. Red threes
+are a hundred points each, only as a negative if held in someone's
+hand. black threes are five points each.
+
+After the scores are calculated, the total of this round and any
+previous rounds indicates the meld for the next round. The game is
+over after four rounds.
+
+
+
