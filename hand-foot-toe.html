@@ -901,7 +901,7 @@ const HFT = (() => {
       ['overview', 'Overview'], ['cards', 'Cards and values'], ['deal', 'Dealing'], ['turn', 'A turn'],
       ['meld', 'The initial meld'], ['melds', 'Melds'], ['canastas', 'Canastas'], ['discard', 'Taking the discard pile'],
       ['foottoe', 'Foot and toe'], ['out', 'Going out'], ['scoring', 'Scoring a round'], ['winning', 'Winning'],
-      ['house', 'House rules'],
+      ['house', 'House rules'], ['variants', 'Variants'],
     ];
     $('#tab-rules').innerHTML = `<article class="rules">
 <p class="muted small" style="margin-top:0">Point values and meld requirements on this page come from Settings.</p>
@@ -914,6 +914,8 @@ const HFT = (() => {
   <li>Each player gets three piles: a <b>hand</b> (15 cards), a <b>foot</b> (13) and a <b>toe</b> (11), played in that order.</li>
   <li>A game is four rounds. Each round is scored on its own; the round scores add up to the game score.</li>
   <li>Partners never share cards or information about their cards.</li>
+  <li>A team can go out only when its base is complete and <b>both partners are in their toes</b>.</li>
+  <li>Variants for two, three and five players are at the end, under <a href="#r-variants">Variants</a>.</li>
 </ul>
 
 <h2 id="r-cards">Cards and values</h2>
@@ -1042,16 +1044,24 @@ const HFT = (() => {
   <li>A player picks up their toe as soon as they have played every card from their hand and foot.</li>
   <li>If that happens during play, they pick up the toe immediately and keep playing.</li>
   <li>If their discard empties their hand, they pick up the toe at the start of their next turn.</li>
+  <li>A player is <b>in their toe</b> as soon as their foot is used up: they have played or discarded its last card and are
+    ready to pick up the toe. This holds whether or not they have picked the toe up yet.</li>
 </ul>
 
 <h2 id="r-out">Going out</h2>
 <ul>
-  <li>To go out, the team's base must be complete: at least one clean, one dirty, one sevens, one fives and one wild canasta.</li>
-  <li>The player going out must be playing from their toe and must ask their partner's permission first.</li>
+  <li>Three conditions must all hold before anyone on the team may go out:
+    <ol>
+      <li>The team's base is complete: at least one clean, one dirty, one sevens, one fives and one wild canasta.</li>
+      <li><b>Both partners are in their toes.</b> A player cannot go out while their partner still holds any card of their
+        hand or foot.</li>
+      <li>The player going out has asked their partner's permission and received it.</li>
+    </ol></li>
   <li>Until going out, a player must always be able to discard one card and still keep at least one card.</li>
   <li>The player goes out by getting rid of every card. The last card may be played or discarded; no discard is required.</li>
   <li>The round ends at once. Every card still held by anyone, including feet and toes not yet reached, counts against that
-    player's team.</li>
+    player's team. A partner who is in their toe but has not yet picked it up still holds it, so its cards count against
+    their own team.</li>
 </ul>
 
 <h2 id="r-scoring">Scoring a round</h2>
@@ -1077,6 +1087,50 @@ const HFT = (() => {
 
 <h2 id="r-house">House rules</h2>
 <p class="chaos">Chaos rules.</p>
+
+<h2 id="r-variants">Variants</h2>
+<h3>Cutthroat (2 or 3 players)</h3>
+<p>Every player plays alone; there are no partnerships and no one cooperates. The rules above apply, with each player acting as
+  their own team (own meld requirement, own board, own score), except:</p>
+<ol>
+  <li><b>No toe.</b> Each player gets a hand (15) and a foot (13) only. The foot is the last pile.</li>
+  <li><b>The wild canasta is allowed but not required.</b> The base needed to go out is one clean, one dirty, one sevens and
+    one fives canasta. A wild canasta still scores its bonus (${v('wilds')}) and goes in the base when it is made.</li>
+  <li><b>No permission to go out.</b> There is no partner to ask.</li>
+</ol>
+<p>What follows from those changes:</p>
+<ul>
+  <li><b>Dealing.</b> The starting player deals the hands and the next player clockwise deals the feet. With three players the
+    third player takes the nap; with two there is no nap. Deal bonus cuts are exact deals: 30 (hands) or 26 (feet) for two
+    players, 45 or 39 for three. A player can earn at most one deal bonus per round.</li>
+  <li><b>Foot.</b> A player may pick up their foot once they have completed their first canasta, after finishing the turn in
+    which they completed it.</li>
+  <li><b>Going out.</b> The player must have picked up their foot and have the base complete. An unreached foot counts against
+    its holder.</li>
+  <li>Six decks, four rounds, and all scoring are unchanged. Each player's score is entered as a team's score.</li>
+</ul>
+
+<h3>Five players, 2 against 3 (provisional)</h3>
+<p>Not yet playtested. One team of two (the <b>pair</b>) plays one team of three (the <b>trio</b>). All partnership rules
+  apply to both teams, with "partner" meaning every teammate, except:</p>
+<ol>
+  <li><b>Seating.</b> Trio in seats 1, 3 and 5; pair in seats 2 and 4. Seats 5 and 1 are trio players side by side.</li>
+  <li><b>Piles.</b> Both teams hold 78 cards in all:
+    <table class="qr"><thead><tr><th>Team</th><th class="num">Hand</th><th class="num">Foot</th><th class="num">Toe</th>
+      <th class="num">Per player</th><th class="num">Team total</th></tr></thead><tbody>
+      <tr><td>Pair</td><td class="num">15</td><td class="num">13</td><td class="num">11</td><td class="num">39</td><td class="num">78</td></tr>
+      <tr><td>Trio</td><td class="num">12</td><td class="num">8</td><td class="num">6</td><td class="num">26</td><td class="num">78</td></tr>
+    </tbody></table></li>
+  <li><b>Draw.</b> Pair players draw 3 cards from the stock instead of 2. Red three replacements stay at 2 cards; taking the
+    discard pile is unchanged.</li>
+  <li><b>No feeding.</b> A player may not take the discard pile when its top card was discarded by a teammate. (This only
+    arises between seats 5 and 1.)</li>
+  <li><b>Dealing.</b> Three dealers deal hands, feet and toes for all five players; the fourth and fifth players nap. Deal
+    bonus cuts are 66 (hands) or 50 (feet). A team can earn at most one deal bonus per round.</li>
+  <li><b>Going out.</b> Every teammate must be in their toe. The player going out asks the team; either trio teammate may
+    answer.</li>
+</ol>
+<p>If one team wins too often, adjust the pair's draw first.</p>
 </article>`;
   }
 

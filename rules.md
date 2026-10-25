@@ -9,6 +9,8 @@ Point values and meld requirements below are the defaults. If they are changed i
 - Each player gets three piles: a **hand** (15 cards), a **foot** (13) and a **toe** (11), played in that order.
 - A game is four rounds. Each round is scored on its own; the round scores add up to the game score.
 - Partners never share cards or information about their cards.
+- A team can go out only when its base is complete and **both partners are in their toes**.
+- Variants for two, three and five players are at the end, under *Variants*.
 
 ## Cards and values
 
@@ -126,14 +128,17 @@ A meld becomes a canasta when it reaches exactly 7 cards, and it moves to the co
 - A player picks up their toe as soon as they have played every card from their hand and foot.
 - If that happens during play, they pick up the toe immediately and keep playing.
 - If their discard empties their hand, they pick up the toe at the start of their next turn.
+- A player is **in their toe** as soon as their foot is used up: they have played or discarded its last card and are ready to pick up the toe. This holds whether or not they have picked the toe up yet.
 
 ## Going out
 
-- To go out, the team's base must be complete: at least one clean, one dirty, one sevens, one fives and one wild canasta.
-- The player going out must be playing from their toe and must ask their partner's permission first.
+- Three conditions must all hold before anyone on the team may go out:
+  1. The team's base is complete: at least one clean, one dirty, one sevens, one fives and one wild canasta.
+  2. **Both partners are in their toes.** A player cannot go out while their partner still holds any card of their hand or foot.
+  3. The player going out has asked their partner's permission and received it.
 - Until going out, a player must always be able to discard one card and still keep at least one card.
 - The player goes out by getting rid of every card. The last card may be played or discarded; no discard is required.
-- The round ends at once. Every card still held by anyone, including feet and toes not yet reached, counts against that player's team.
+- The round ends at once. Every card still held by anyone, including feet and toes not yet reached, counts against that player's team. A partner who is in their toe but has not yet picked it up still holds it, so its cards count against their own team.
 
 ## Scoring a round
 
@@ -160,3 +165,39 @@ Canasta bonuses and the card count are separate: a canasta's cards are also coun
 ## House rules
 
 **Chaos rules.**
+
+## Variants
+
+### Cutthroat (2 or 3 players)
+
+Every player plays alone; there are no partnerships and no one cooperates. The rules above apply, with each player acting as their own team (own meld requirement, own board, own score), except:
+
+1. **No toe.** Each player gets a hand (15) and a foot (13) only. The foot is the last pile.
+2. **The wild canasta is allowed but not required.** The base needed to go out is one clean, one dirty, one sevens and one fives canasta. A wild canasta still scores its bonus and goes in the base when it is made.
+3. **No permission to go out.** There is no partner to ask.
+
+What follows from those changes:
+
+- **Dealing.** The starting player deals the hands and the next player clockwise deals the feet. With three players the third player takes the nap; with two there is no nap. Deal bonus cuts are exact deals: 30 (hands) or 26 (feet) for two players, 45 or 39 for three. A player can earn at most one deal bonus per round.
+- **Foot.** A player may pick up their foot once they have completed their first canasta, after finishing the turn in which they completed it.
+- **Going out.** The player must have picked up their foot and have the base complete. An unreached foot counts against its holder.
+- Six decks, four rounds, and all scoring are unchanged. Each player's score is entered as a team's score.
+
+### Five players, 2 against 3 (provisional)
+
+Not yet playtested. One team of two (the **pair**) plays one team of three (the **trio**). All partnership rules apply to both teams, with "partner" meaning every teammate, except:
+
+1. **Seating.** Trio in seats 1, 3 and 5; pair in seats 2 and 4. Seats 5 and 1 are trio players side by side.
+2. **Piles.** Both teams hold 78 cards in all:
+
+   | Team | Hand | Foot | Toe | Per player | Team total |
+   |---|---:|---:|---:|---:|---:|
+   | Pair | 15 | 13 | 11 | 39 | 78 |
+   | Trio | 12 | 8 | 6 | 26 | 78 |
+
+3. **Draw.** Pair players draw 3 cards from the stock instead of 2. Red three replacements stay at 2 cards; taking the discard pile is unchanged.
+4. **No feeding.** A player may not take the discard pile when its top card was discarded by a teammate. (This only arises between seats 5 and 1.)
+5. **Dealing.** Three dealers deal hands, feet and toes for all five players; the fourth and fifth players nap. Deal bonus cuts are 66 (hands) or 50 (feet). A team can earn at most one deal bonus per round.
+6. **Going out.** Every teammate must be in their toe. The player going out asks the team; either trio teammate may answer.
+
+If one team wins too often, adjust the pair's draw first.
