@@ -185,7 +185,7 @@ What follows from those changes:
 
 ### Five players, 2 against 3 (provisional)
 
-Not yet playtested. One team of two (the **pair**) plays one team of three (the **trio**). All partnership rules apply to both teams, with "partner" meaning every teammate, except:
+Not yet played. The pair's 3-card draw is the open question, to be settled in play. One team of two (the **pair**) plays one team of three (the **trio**). All partnership rules apply to both teams, with "partner" meaning every teammate, except:
 
 1. **Seating.** Trio in seats 1, 3 and 5; pair in seats 2 and 4. Seats 5 and 1 are trio players side by side.
 2. **Piles.** Both teams hold 78 cards in all:
@@ -200,4 +200,4 @@ Not yet playtested. One team of two (the **pair**) plays one team of three (the 
 5. **Dealing.** Three dealers deal hands, feet and toes for all five players; the fourth and fifth players nap. Deal bonus cuts are 66 (hands) or 50 (feet). A team can earn at most one deal bonus per round.
 6. **Going out.** Every teammate must be in their toe. The player going out asks the team; either trio teammate may answer.
 
-If one team wins too often, adjust the pair's draw first.
+If one team wins too often, adjust the pair's draw.
