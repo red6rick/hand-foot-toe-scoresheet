@@ -9,12 +9,14 @@
   --bg: #f6f5f1; --panel: #ffffff; --ink: #1d1d1f; --muted: #6b6b70; --line: #deddd6;
   --accent: #2f5d8a; --accent-ink: #ffffff; --hl: #edf2f7; --warn: #b3261e; --ok: #2d7a46;
   --t0: #9a3b5c; --t1: #2f6a8a;
+  --grid: #8a8a8a; --cur-bg: #fff2a8; --cur-line: #d32f2f; --err-bg: #f6c3bf; --off: #ecebe6;
 }
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #17181a; --panel: #212225; --ink: #e8e6e1; --muted: #9b9ba1; --line: #3a3b40;
     --accent: #7aa7d6; --accent-ink: #111111; --hl: #26303b; --warn: #ff8a80; --ok: #6cc58a;
     --t0: #e392ae; --t1: #86b9d8;
+    --grid: #77777d; --cur-bg: #5b4b10; --cur-line: #ff6b6b; --err-bg: #6e2622; --off: #1b1c1e;
   }
 }
 * { box-sizing: border-box; }
@@ -35,6 +37,7 @@ footer { max-width: 1120px; margin: 0 auto; padding: 0 24px 24px; color: var(--m
 .small { font-size: 13px; }
 .num { font-variant-numeric: tabular-nums; text-align: right; }
 .t0 { color: var(--t0); } .t1 { color: var(--t1); }
+body.scoring header { display: none; }   /* score page: side column carries the tabs */
 #banner { background: var(--warn); color: #fff; padding: 8px 24px; font-size: 14px; }
 
 .btn { font: inherit; padding: 7px 14px; border-radius: 7px; border: 1px solid var(--line);
@@ -44,41 +47,46 @@ footer { max-width: 1120px; margin: 0 auto; padding: 0 24px 24px; color: var(--m
 .btn.danger { color: var(--warn); }
 .btn:disabled { opacity: .45; cursor: default; }
 
-.board { display: grid; grid-template-columns: 1fr auto 1fr; gap: 16px; align-items: stretch; margin-bottom: 18px; }
-.teamcard { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; }
-.teamcard .tname { font-weight: 650; font-size: 15px; }
-.teamcard .ttotal { font-size: 34px; font-weight: 650; text-align: left; line-height: 1.15; }
-.teamcard .tmeta { color: var(--muted); font-size: 13px; }
-.board .mid { align-self: center; text-align: center; min-width: 180px; }
-.board .mid .lead { font-weight: 600; font-size: 15px; }
+.gamewrap { display: flex; gap: 16px; align-items: flex-start; }
+.side { width: 150px; flex: none; display: flex; flex-direction: column; gap: 8px; }
+.side .btn { width: 100%; padding: 6px 10px; font-size: 14px; }
+.side .small { font-size: 12px; line-height: 1.35; }
+.side .small:empty { display: none; }
+.side hr { width: 100%; border: 0; border-top: 2px solid var(--grid); margin: 6px 0 2px; }
+.side .btn.tab { padding: 4px 10px; font-size: 13px; color: var(--muted); }
+.side .btn.tab:hover { color: var(--ink); }
 
-.tablewrap { overflow-x: auto; }
-table.sheet { border-collapse: separate; border-spacing: 0; background: var(--panel); border: 1px solid var(--line);
-  border-radius: 10px; overflow: hidden; }
-.sheet th, .sheet td { padding: 3px 7px; border-bottom: 1px solid var(--line); white-space: nowrap; }
-.sheet tbody tr:last-child th, .sheet tbody tr:last-child td { border-bottom: 0; }
-.sheet thead th { font-weight: 600; font-size: 13px; }
-.sheet th.round { text-align: center; border-left: 1px solid var(--line); padding-top: 7px; }
-.sheet th.round .done { color: var(--ok); font-weight: 500; font-size: 12px; margin-left: 4px; }
-.sheet th.team { text-align: right; font-size: 12px; }
+.tablewrap { overflow-x: auto; flex: none; }
+table.sheet { border-collapse: collapse; table-layout: fixed; background: var(--panel); border: 2px solid var(--grid);
+  font-size: 13px; line-height: 1.2; }
+.sheet col.lab { width: 150px; }
+.sheet col.dat { width: 56px; }
+.sheet th, .sheet td { border: 1px solid var(--grid); height: 22px; padding: 0 5px; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis; }
+.sheet thead th { font-weight: 600; font-size: 12px; }
+.sheet th.round { text-align: center; }
+.sheet th.round .done { color: var(--ok); font-weight: 500; margin-left: 4px; }
+.sheet th.team { text-align: right; }
 .sheet tbody th { text-align: left; font-weight: 500; }
-.sheet .hint { color: var(--muted); font-size: 12px; font-weight: 400; margin-left: 6px; }
-.sheet .ta { border-left: 1px solid var(--line); }
+.sheet .ta { border-left: 2px solid var(--grid); }
 .sheet .cur { background: var(--hl); }
-.sheet input[type=text] { width: 5.2em; text-align: right; font: inherit; font-variant-numeric: tabular-nums;
-  padding: 2px 5px; border: 1px solid var(--line); border-radius: 4px; background: var(--panel); color: var(--ink); }
-.sheet input[type=text]:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: var(--accent); }
-.sheet input[type=checkbox] { width: 16px; height: 16px; margin: 3px 0; accent-color: var(--accent); }
-.sheet input:disabled { opacity: .3; }
-.sheet input.bad { border-color: var(--warn); outline: 1px solid var(--warn); }
+.sheet td.in { padding: 0; }
+.sheet td.chk { text-align: center; }
+.sheet td.off { background: var(--off); }
+.sheet input[type=text] { display: block; width: 100%; height: 21px; margin: 0; padding: 0 5px; border: 0; outline: 0;
+  border-radius: 0; background: transparent; color: var(--ink); font: inherit; font-variant-numeric: tabular-nums;
+  text-align: right; }
+.sheet input[type=checkbox] { width: 14px; height: 14px; margin: 0; vertical-align: middle; accent-color: var(--accent); outline: 0; }
+.sheet input:disabled { visibility: hidden; }
+.sheet td.bad { background: var(--err-bg); }
+.sheet td.in:focus-within { background: var(--cur-bg); box-shadow: inset 0 0 0 2px var(--cur-line); }
+.sheet td.in.bad:focus-within { background: var(--err-bg); }
 .sheet tr.computed td, .sheet tr.computed th { font-weight: 650; }
-.sheet tr.meld td { font-size: 13px; }
-.sheet tr.sep td, .sheet tr.sep th { border-top: 2px solid var(--line); }
+.sheet tr.meld td { font-size: 12px; }
+.sheet tr.sep td, .sheet tr.sep th { border-top: 2px solid var(--grid); }
 .sheet .changed { color: var(--warn); }
 
-.actions { display: flex; gap: 10px; align-items: center; margin-top: 14px; flex-wrap: wrap; }
-.actions .spacer { flex: 1; }
-ul.errors { color: var(--warn); margin: 10px 0 0; padding-left: 20px; font-size: 14px; }
+ul.errors { color: var(--warn); margin: 0; padding-left: 16px; font-size: 12px; line-height: 1.35; }
 ul.errors:empty { display: none; }
 
 .empty { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 20px 24px; max-width: 560px; }
@@ -481,6 +489,7 @@ const HFT = (() => {
   function show(tab) {
     for (const k in renderers) $('#tab-' + k).hidden = k !== tab;
     $$('nav button').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+    document.body.classList.remove('scoring');
     renderers[tab]();
   }
   $$('nav button').forEach(b => b.addEventListener('click', () => show(b.dataset.tab)));
@@ -501,6 +510,7 @@ const HFT = (() => {
   function renderGame() {
     const el = $('#tab-game');
     const g = state.current;
+    document.body.classList.toggle('scoring', !!g);
     if (!g) {
       const last = state.history[state.history.length - 1];
       const S = state.settings;
@@ -519,57 +529,83 @@ const HFT = (() => {
     const cur = g.finished;            // index of round being played (4 = all done)
     const reach = HFT.lastReachable(g);
     const cls = (r, t) => `${t === 0 ? 'ta' : ''} ${r === cur ? 'cur' : ''}`;
-    const row = (trCls, label, cell) => {
-      let h = `<tr class="${trCls}"><th scope="row">${label}</th>`;
-      for (let r = 0; r < 4; r++) for (let t = 0; t < 2; t++) h += `<td class="num ${cls(r, t)}">${cell(r, t)}</td>`;
+    const row = (trCls, label, cell, tdCls = () => '') => {
+      let h = `<tr class="${trCls}">${label}`;
+      for (let r = 0; r < 4; r++) for (let t = 0; t < 2; t++)
+        h += `<td class="num ${cls(r, t)} ${tdCls(r, t)}">${cell(r, t)}</td>`;
       return h + '</tr>';
     };
-    const hint = f => f.kind === 'neg' ? '<span class="hint">−</span>' :
-      f.kind === 'pts' ? '<span class="hint">+</span>' : `<span class="hint">×${fmt(g.pts[f.key])}</span>`;
-    const input = (r, t, f, fi) => {
+    const lab = (text, tip) => `<th scope="row"${tip ? ` title="${esc(tip)}"` : ''}>${esc(text)}</th>`;
+    const tip = f => f.kind === 'neg' ? 'Points subtracted' : f.kind === 'pts' ? 'Points added as counted' :
+      `×${fmt(g.pts[f.key])}${f.kind === 'int' ? ' each' : ''}`;
+    const input = (r, t, f) => {
       const editable = r <= reach;
       const v = g.rounds[r][t][f.key];
       const common = `id="in-${r}-${t}-${f.key}" data-r="${r}" data-t="${t}" data-k="${f.key}" ` +
-        `aria-label="Round ${r + 1} ${esc(g.teams[t])} ${esc(f.label)}" ` +
-        (editable ? `tabindex="${1 + r * 100 + t * 20 + fi}"` : 'disabled');
+        `aria-label="Round ${r + 1} ${esc(g.teams[t])} ${esc(f.label)}"` + (editable ? '' : ' disabled');
       return f.kind === 'bool'
         ? `<input type="checkbox" ${common} ${v ? 'checked' : ''}>`
         : `<input type="text" inputmode="numeric" autocomplete="off" ${common} value="${v == null ? '' : esc(v)}">`;
     };
 
-    let h = `<div class="board" id="board"></div><div class="tablewrap"><table class="sheet" id="sheet"><thead><tr><th></th>`;
+    let h = `<div class="gamewrap"><div class="tablewrap"><table class="sheet" id="sheet">` +
+      `<colgroup><col class="lab">${'<col class="dat">'.repeat(8)}</colgroup><thead><tr><th></th>`;
     for (let r = 0; r < 4; r++)
-      h += `<th colspan="2" class="round ${r === cur ? 'cur' : ''}">Round ${r + 1}${r < g.finished ? '<span class="done">done</span>' : ''}</th>`;
+      h += `<th colspan="2" class="round ta ${r === cur ? 'cur' : ''}">Round ${r + 1}${r < g.finished ? '<span class="done">done</span>' : ''}</th>`;
     h += '</tr><tr><th></th>';
     for (let r = 0; r < 4; r++) for (let t = 0; t < 2; t++)
-      h += `<th class="team t${t} ${cls(r, t)}">${esc(g.teams[t])}</th>`;
+      h += `<th class="team t${t} ${cls(r, t)}" title="${esc(g.teams[t])}">${esc(g.teams[t])}</th>`;
     h += '</tr></thead><tbody>';
-    h += row('meld', 'Meld', (r, t) => `<span id="meld-${r}-${t}"></span>`);
-    HFT.FIELDS.forEach((f, fi) => { h += row(f.key === 'deal' ? 'sep' : '', esc(f.label) + hint(f), (r, t) => input(r, t, f, fi)); });
-    h += row('computed sep', 'Round score', (r, t) => `<span id="score-${r}-${t}"></span>`);
-    h += row('computed', 'Game total', (r, t) => `<span id="total-${r}-${t}"></span>`);
-    h += row('small muted', 'Round margin', (r, t) => `<span id="by-${r}-${t}"></span>`);
+    h += row('meld', lab('Meld'), (r, t) => `<span id="meld-${r}-${t}"></span>`);
+    HFT.FIELDS.forEach(f => {
+      h += row(f.key === 'deal' ? 'sep' : '', lab(f.label, tip(f)), (r, t) => input(r, t, f),
+        r => `in${f.kind === 'bool' ? ' chk' : ''}${r > reach ? ' off' : ''}`);
+    });
+    h += row('computed sep', lab('Round score'), (r, t) => `<span id="score-${r}-${t}"></span>`);
+    h += row('computed', lab('Game total'), (r, t) => `<span id="total-${r}-${t}"></span>`);
+    h += row('small muted', lab('Round margin'), (r, t) => `<span id="by-${r}-${t}"></span>`);
     h += '</tbody></table></div>';
-    h += `<div class="actions">
+    h += `<div class="side">
       ${cur < 4 ? `<button class="btn primary" id="finish-round">Finish round ${cur + 1}</button>`
                 : `<button class="btn primary" id="record">Record game</button>`}
-      <span id="finish-hint" class="muted small"></span>
-      <span class="spacer"></span>
       ${cur < 4 ? '<button class="btn" id="forfeit">Forfeit…</button>' : ''}
       <button class="btn danger" id="discard">Discard game…</button>
-    </div>
-    <ul class="errors" id="errors"></ul>
-    <p class="muted small">Meld shows <b>original / updated</b> when a correction to an earlier round changes it.
-      Enter and Tab move down each team's column.</p>${recentHTML()}`;
+      <span id="finish-hint" class="muted small"></span>
+      <ul class="errors" id="errors"></ul>
+      <hr>
+      <button class="btn tab" data-goto="history">History</button>
+      <button class="btn tab" data-goto="settings">Settings</button>
+      <button class="btn tab" data-goto="data">Import / Export</button>
+      <button class="btn tab" data-goto="rules">Rules</button>
+    </div></div>
+    <p class="muted small">Enter and Tab follow scoring order; Shift goes back.<br>
+      Meld shows <b>original / updated</b> when a correction to an earlier round changes it.</p>${recentHTML()}`;
     el.innerHTML = h;
 
     const sheet = $('#sheet');
     sheet.addEventListener('input', ev => { if (ev.target.type === 'text') onCell(ev.target); });
     sheet.addEventListener('change', ev => { if (ev.target.type === 'checkbox') onCell(ev.target); });
     sheet.addEventListener('keydown', ev => {
-      if (ev.key === 'Enter' && ev.target.matches('input')) { ev.preventDefault(); moveFocus(ev.target, ev.shiftKey ? -1 : 1); }
+      if ((ev.key === 'Enter' || ev.key === 'Tab') && !ev.isComposing && ev.target.matches('input')) {
+        ev.preventDefault(); moveFocus(ev.target, ev.shiftKey ? -1 : 1);
+      }
     });
-    sheet.addEventListener('focusin', ev => { if (ev.target.type === 'text') ev.target.select(); });
+    let justFocused = null;
+    sheet.addEventListener('focusin', ev => {
+      if (ev.target.type === 'text') { ev.target.select(); justFocused = ev.target; }
+    });
+    sheet.addEventListener('mouseup', ev => {           // keep the select-all from focus on a click
+      if (ev.target === justFocused) ev.preventDefault();
+      justFocused = null;
+    });
+    $$('.side [data-goto]').forEach(b => b.addEventListener('click', () => show(b.dataset.goto)));
+    const endBtn = $('#finish-round') || $('#record');
+    endBtn.addEventListener('keydown', ev => {
+      if (ev.key === 'Tab' && ev.shiftKey) {
+        const list = navOrder(g), prev = list[list.indexOf(endBtn) - 1];
+        if (prev) { ev.preventDefault(); prev.focus(); }
+      }
+    });
 
     if (cur < 4) {
       $('#finish-round').onclick = () => {
@@ -615,17 +651,47 @@ const HFT = (() => {
       }
     } else {
       g.rounds[r][t][k] = HFT.parseCell(i.value);
+      const key = g.id + ':' + r;
+      if (r === g.finished && BLOCK.includes(k) && firstRep[key] == null && blockEmpty(g, r, 1 - t)) firstRep[key] = t;
     }
     save(); updateGame();
   }
 
-  function editableInputs() {
-    return $$('#sheet input:not(:disabled)').sort((a, b) => a.tabIndex - b.tabIndex);
+  // Cursor order. Finished rounds: straight down each team's column.
+  // Current round follows play: deal, went out, first reporting team's
+  // unplayed..red threes and went out, other team's, then both counts, then Finish.
+  const BLOCK = ['penalty', 'clean', 'dirty', 'sevens', 'fives', 'wilds', 'red3'];
+  const firstRep = {};                       // `${gameId}:${round}` -> team that reported first
+  function blockEmpty(g, r, t) { return BLOCK.every(k => g.rounds[r][t][k] == null); }
+  function reporterFirst(g, r) {
+    const k = g.id + ':' + r;
+    if (firstRep[k] != null) return firstRep[k];
+    return blockEmpty(g, r, 0) && !blockEmpty(g, r, 1) ? 1 : 0;
+  }
+  function navOrder(g) {
+    const reach = HFT.lastReachable(g), cur = g.finished, ids = [];
+    for (let r = 0; r <= reach; r++) {
+      if (r === cur) {
+        const a = reporterFirst(g, r), b = 1 - a;
+        ids.push(`${r}-0-deal`, `${r}-1-deal`);
+        for (const t of [a, b]) { BLOCK.forEach(k => ids.push(`${r}-${t}-${k}`)); ids.push(`${r}-${t}-out`); }
+        ids.push(`${r}-0-count`, `${r}-1-count`);
+      } else {
+        for (let t = 0; t < 2; t++) HFT.FIELDS.forEach(f => ids.push(`${r}-${t}-${f.key}`));
+      }
+    }
+    return ids.map(id => $('#in-' + id)).concat([$('#finish-round') || $('#record')]).filter(Boolean);
   }
   function moveFocus(from, dir) {
-    const list = editableInputs();
-    const i = list.indexOf(from);
-    const next = list[i + dir];
+    const g = state.current;
+    const r = +from.dataset.r, t = +from.dataset.t;
+    if (dir > 0 && r === g.finished && from.dataset.k === 'out') {
+      const o = 1 - t;
+      $(blockEmpty(g, r, o) ? `#in-${r}-${o}-penalty` : `#in-${r}-0-count`).focus();
+      return;
+    }
+    const list = navOrder(g);
+    const next = list[list.indexOf(from) + dir];
     if (next) next.focus();
   }
   function focusFirst(r) { const el = $(`#in-${r}-0-deal`); if (el) el.focus(); }
@@ -649,23 +715,10 @@ const HFT = (() => {
         me.title = m && m.changed ? 'original / updated' : '';
         for (const f of HFT.FIELDS) {
           const inp = $(`#in-${r}-${t}-${f.key}`);
-          inp.classList.toggle('bad', !!HFT.cellError(g.rounds[r][t][f.key], f.kind));
+          inp.parentElement.classList.toggle('bad', !!HFT.cellError(g.rounds[r][t][f.key], f.kind));
         }
       }
     }
-
-    const T = HFT.totalsThrough(g, 4);
-    const w = HFT.winnerOf(T);
-    const lead = w < 0 ? 'Tied' : `<span class="t${w}">${esc(g.teams[w])}</span> lead by ${fmt(Math.abs(T[0] - T[1]))}`;
-    const meldLine = t => {
-      if (g.finished >= 4) return 'All rounds finished';
-      const m = HFT.meldInfo(g, g.finished, t);
-      return `Meld this round: ${m.changed ? `${m.orig} / ${m.cur}` : m.orig}`;
-    };
-    $('#board').innerHTML = [0, 1].map(t => `<div class="teamcard"><div class="tname t${t}">${esc(g.teams[t])}</div>
-        <div class="ttotal num">${fmt(T[t])}</div><div class="tmeta">${meldLine(t)}</div></div>`)
-      .join(`<div class="mid"><div class="muted small">${g.finished < 4 ? `Round ${g.finished + 1} of 4` : 'Game complete'}${g.site ? ' · ' + esc(g.site) : ''}</div>
-        <div class="lead">${lead}</div></div>`);
 
     const errs = HFT.validate(g);
     $('#errors').innerHTML = errs.map(e => `<li>${esc(e)}</li>`).join('');

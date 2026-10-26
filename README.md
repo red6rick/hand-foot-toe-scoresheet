@@ -34,6 +34,27 @@ Data is saved automatically in the browser's local storage (key `hft.v1`) on
 every edit. Storage is per browser and per file location: a different browser,
 a private window, or a moved file sees an empty history.
 
+While a game is in progress the Game tab hides the top tab bar; the column
+beside the score grid holds the round buttons and links to the other tabs.
+
+### Entry order
+
+Enter and Tab move the cursor in scoring order (Shift goes back). In the
+current round:
+
+1. Deal bonus for each team.
+2. The first team to report: unplayed cards, clean canastas through red threes,
+   then went out. Went out comes last so the team going out declares its red
+   threes and then "and we went out".
+3. The other team: the same sequence.
+4. Count on table for each team, then **Finish round**.
+
+Either team can report first: after a team's went out, the cursor goes to the
+other team's unplayed cards if they are still empty, otherwise to the counts.
+In finished rounds, corrections move straight down each team's column. Space
+toggles a checkbox; Enter and Tab pass it without changing it. Arriving in a
+cell selects its value, so typing replaces it.
+
 ## Sharing and merging
 
 - **Emailing the page** gives the recipient a clean copy. It opens with no
