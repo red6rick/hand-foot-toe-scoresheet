@@ -81,6 +81,7 @@ table.sheet { border-collapse: collapse; table-layout: fixed; background: var(--
 .sheet td.bad { background: var(--err-bg); }
 .sheet td.in:focus-within { background: var(--cur-bg); box-shadow: inset 0 0 0 2px var(--cur-line); }
 .sheet td.in.bad:focus-within { background: var(--err-bg); }
+.sheet tr.focusrow th { background: var(--cur-bg); box-shadow: inset 4px 0 0 var(--cur-line); font-weight: 700; }
 .sheet tr.computed td, .sheet tr.computed th { font-weight: 650; }
 .sheet tr.meld td { font-size: 12px; }
 .sheet tr.sep td, .sheet tr.sep th { border-top: 2px solid var(--grid); }
@@ -562,8 +563,9 @@ const HFT = (() => {
         r => `in${f.kind === 'bool' ? ' chk' : ''}${r > reach ? ' off' : ''}`);
     });
     h += row('computed sep', lab('Round score'), (r, t) => `<span id="score-${r}-${t}"></span>`);
-    h += row('computed', lab('Game total'), (r, t) => `<span id="total-${r}-${t}"></span>`);
     h += row('small muted', lab('Round margin'), (r, t) => `<span id="by-${r}-${t}"></span>`);
+    h += row('computed', lab('Game score'), (r, t) => `<span id="total-${r}-${t}"></span>`);
+    h += row('small muted', lab('Game margin'), (r, t) => `<span id="gby-${r}-${t}"></span>`);
     h += '</tbody></table></div>';
     h += `<div class="side">
       ${cur < 4 ? `<button class="btn primary" id="finish-round">Finish round ${cur + 1}</button>`
@@ -593,6 +595,11 @@ const HFT = (() => {
     let justFocused = null;
     sheet.addEventListener('focusin', ev => {
       if (ev.target.type === 'text') { ev.target.select(); justFocused = ev.target; }
+      $$('tr.focusrow', sheet).forEach(tr => tr.classList.remove('focusrow'));
+      if (ev.target.matches('input')) ev.target.closest('tr').classList.add('focusrow');
+    });
+    sheet.addEventListener('focusout', ev => {
+      if (!sheet.contains(ev.relatedTarget)) $$('tr.focusrow', sheet).forEach(tr => tr.classList.remove('focusrow'));
     });
     sheet.addEventListener('mouseup', ev => {           // keep the select-all from focus on a click
       if (ev.target === justFocused) ev.preventDefault();
@@ -609,6 +616,11 @@ const HFT = (() => {
 
     if (cur < 4) {
       $('#finish-round').onclick = () => {
+        const s = HFT.roundScores(g)[cur], t = HFT.totalsThrough(g, cur + 1);
+        if (!confirm(`Finish round ${cur + 1}?\n\n` +
+          `Round: ${g.teams[0]} ${fmt(s[0])} – ${g.teams[1]} ${fmt(s[1])}\n` +
+          `Game: ${g.teams[0]} ${fmt(t[0])} – ${g.teams[1]} ${fmt(t[1])}\n\n` +
+          'After this, the round can only be corrected as an earlier round.')) return;
         HFT.finishRound(g); save(); renderGame();
         if (g.finished < 4) focusFirst(g.finished); else $('#record').focus();
       };
@@ -717,6 +729,10 @@ const HFT = (() => {
           const inp = $(`#in-${r}-${t}-${f.key}`);
           inp.parentElement.classList.toggle('bad', !!HFT.cellError(g.rounds[r][t][f.key], f.kind));
         }
+      }
+      for (let t = 0; t < 2; t++) {           // after both teams: cum holds totals through round r
+        const d = cum[t] - cum[1 - t];
+        $(`#gby-${r}-${t}`).textContent = on && d > 0 ? '+' + fmt(d) : '';
       }
     }
 

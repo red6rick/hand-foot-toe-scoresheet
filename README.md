@@ -25,7 +25,9 @@ install, no network access, no build step, no subscription.
 2. Set team names and location in **Settings**.
 3. On the **Game** tab, start a new game and enter each team's results per round,
    rounds 1 through 4 in order. Meld requirements are computed and shown per team.
-4. **Finish round** after each round; **Record game** after round 4.
+4. **Finish round** after each round (it asks for confirmation); **Record game** after round 4.
+   Below the entries, each round shows round score, round margin, game score
+   and game margin (margins appear on the leading team).
    A trailing team may **Forfeit**; **Discard** abandons a game without recording it.
 5. **History** shows past games, win counts, streaks, averages, high game and
    cumulative totals, filterable by location.
@@ -53,7 +55,8 @@ Either team can report first: after a team's went out, the cursor goes to the
 other team's unplayed cards if they are still empty, otherwise to the counts.
 In finished rounds, corrections move straight down each team's column. Space
 toggles a checkbox; Enter and Tab pass it without changing it. Arriving in a
-cell selects its value, so typing replaces it.
+cell selects its value, so typing replaces it. The label of the row being
+edited is highlighted.
 
 ## Sharing and merging
 
