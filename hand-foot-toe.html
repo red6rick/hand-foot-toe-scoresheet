@@ -33,6 +33,7 @@ nav button:hover { color: var(--ink); }
 nav button.active { background: var(--hl); color: var(--ink); font-weight: 600; }
 main { max-width: 1120px; margin: 0 auto; padding: 20px 24px 64px; }
 footer { max-width: 1120px; margin: 0 auto; padding: 0 24px 24px; color: var(--muted); font-size: 12px; }
+footer a { color: inherit; }
 .muted { color: var(--muted); }
 .small { font-size: 13px; }
 .num { font-variant-numeric: tabular-nums; text-align: right; }
@@ -159,7 +160,9 @@ form.settings { display: grid; gap: 6px; max-width: 520px; }
   <section id="tab-data" hidden></section>
   <section id="tab-rules" hidden></section>
 </main>
-<footer>Data is stored in this browser on this computer only. Export to a file now and then as a backup.</footer>
+<footer>Data is stored in this browser on this computer only. Export to a file now and then as a backup.<br>
+  Source: <a href="https://github.com/red6rick/hand-foot-toe-scoresheet">github.com/red6rick/hand-foot-toe-scoresheet</a><br>
+  Created by Claude (Anthropic) under the direction of <a href="mailto:rick@neverslow.com">rick@neverslow.com</a></footer>
 
 <!-- ===================================================================
      Scoring core: pure functions, no DOM, no storage.
